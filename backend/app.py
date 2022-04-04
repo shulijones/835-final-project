@@ -6,6 +6,7 @@ from imutils.video import VideoStream
 from flask import Response
 from flask import Flask
 from flask import render_template
+# from flask_cors import CORS, cross_origin
 import threading
 import imutils
 import time
@@ -15,6 +16,11 @@ outputFrame = None
 
 # initialize a flask object
 app = Flask(__name__)
+# api_v1_cors_config = {
+#   "origins": ["http://localhost:3000"]
+# }
+# CORS(app)#, resources={"*": api_v1_cors_config})
+#CORS(app, support_credentials=True)
 
 # initialize the video stream and allow the camera sensor to warm up
 vs = VideoStream(src=0).start() # pulling from webcam
@@ -50,11 +56,28 @@ def generate():
 			bytearray(encodedImage) + b'\r\n')
 
 @app.route("/video_feed")
+# @cross_origin(origin='*',headers=['access-control-allow-origin','Content-Type'])
 def video_feed():
 	# return the response generated along with the specific media
 	# type (mime type)
-	return Response(generate(),
+  response = Response(generate(),
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
+    #headers={'Access-Control-Allow-Origin':'*'})
+  # response.headers["Access-Control-Allow-Origin"] = "*"
+  # response.headers['Access-Control-Allow-Methods'] = 'GET'
+  # response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With'
+  # response.access_control_allow_origin = '*'
+  return response#, {"Access-Control-Allow-Origin": "*"}
+  #global outputFrame
+  #return Response(bytearray(cv2.imencode(".jpg", outputFrame)), mimetype="image/jpeg")
+
+# def add_allowing_headers(response):
+#   response.headers.add('Access-Control-Allow-Origin', '*')
+#   response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+#   response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+
+# if app.debug:
+#   app.after_request(app.add_allowing_headers)
 
 if __name__ == '__main__':
   # start a thread to get the video stream

@@ -3,6 +3,7 @@
 <div id="app">
   {{ message }}
   {{ speech }}
+  <img src="http://localhost:8080/api/video_feed">
 </div>
 
 <script>
@@ -10,7 +11,7 @@
     data() {
       return {
         message: 'Hello Vue!',
-        speech: '[Your speech here]'
+        speech: '[Your speech here]',
       }
     },
     methods: {

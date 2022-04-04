@@ -3,7 +3,7 @@ const path = require('path');
 // const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 // const session = require('express-session');
-// const cors = require('cors');
+const cors = require('cors');
 
 // Import all the express routes we will be using
 const indexRouter = require('./routes/index');
@@ -21,7 +21,7 @@ const app = express();
 // }));
 
 // Allows us to make requests from POSTMAN
-// app.use(cors());
+app.use(cors({ credentials: true, origin: [`http://localhost:5000`, `https://localhost:3000`], }));
 
 // Set up the app to use dev logger
 app.use(logger('dev'));

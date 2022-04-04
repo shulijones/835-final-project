@@ -7,7 +7,7 @@
 <script>
 // import axios from "axios";
 
-export default {
+module.exports = {
   name: "app",
   data() {
     return {
@@ -16,5 +16,8 @@ export default {
   },
   methods: {
   },
+  mounted() {
+    console.log("APP VUE MOUNTED");
+  }
 };
 </script>
