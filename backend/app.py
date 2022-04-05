@@ -52,10 +52,11 @@ def generate():
 @app.route("/video_feed")
 def video_feed():
 	# return the response generated along with the specific media
-	# type (mime type)
-	return Response(generate(),
+	# type (mime type); this type continuously replaces itself
+  # each time the word "frame" appears in the stream
+  return Response(generate(),
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
-
+   
 if __name__ == '__main__':
   # start a thread to get the video stream
 	t = threading.Thread(target=get_video, args=(32,)) # frame count 32
