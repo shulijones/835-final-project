@@ -3,21 +3,31 @@
 
 
 <div id="app">
-  {{ message }}
-  {{ speech }}
-  {{ mode }}
-  {{ src_string }}
+  <h1>Picture Hanging Helper -- Prototype</h1>
+  <h2>Developed by Shuli Jones and Emily Caragay</h2>
+  <p>What we just heard you say: {{ speech }}</p>
+  <p>You are currently in mode: {{ mode }} </p>
+
+  <p>Your video:</p>
   <img :src=src_string>
-  <img :src=single_image>
+  
+  <div v-if="single_image">
+    Your picture:
+    <img :src=single_image>
+  </div>
+  
+  <p>To switch to color tracking mode, say "color". To switch to default mode
+    (no color tracking), say "default". To take a picture of your current video
+    and save the picture frame you're holding up, say "take a picture".
+  </p>
 </div>
 
 <script>
   Vue.createApp({
     data() {
       return {
-        message: 'Hello Vue!',
-        speech: '[Your speech here]',
-        single_image: "http://localhost:8080/api/video_feed",
+        speech: '[No speech yet!]',
+        single_image: "",
         src_string: 'http://localhost:8080/api/video_feed',
         mode: 'default',
         mode_old: 'default'
@@ -36,7 +46,7 @@
 
         if (this.speech.includes("color")){
           this.mode_old = this.mode
-          this.mode = "color";
+          this.mode = "color tracking";
           this.src_string = 'http://localhost:8080/api/video_feed_color';
 
 
@@ -44,6 +54,15 @@
           this.mode_old = this.mode
           this.mode = "default";
           this.src_string = 'http://localhost:8080/api/video_feed';
+        } else if (this.speech.includes("take picture") ||
+                  this.speech.includes("take a picture") ) {
+          axios.get('http://localhost:8080/api/get_picture')
+            .then((response) => {
+              this.single_image = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+            console.log(error)
+        });
         }
 
         if (this.mode != this.mode_old){
@@ -58,14 +77,6 @@
         }, 1000);
       };
       recognition.start();
-
-      axios.get('http://localhost:8080/api/current_image')
-        .then((response) => {
-          this.single_image = "data:image/jpg;base64," + response.data
-        })
-        .catch((error) => {
-         console.log(error)
-        });
     }
   }).mount('#app')
 </script>
