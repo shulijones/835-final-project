@@ -10,6 +10,7 @@ import threading
 import imutils
 import time
 import cv2
+import base64
 
 outputFrame = None
 colorOutputFrame = None
@@ -101,6 +102,21 @@ def video_feed():
 
   return Response(generate(),
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
+
+
+@app.route("/current_image")
+def current_image():
+  # return a single video frame (as jpg)
+  global outputFrame
+  if outputFrame is not None:
+    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+    # ensure the frame was successfully encoded
+    if flag:
+		# yield the output frame in base 64 format
+      im_bytes = encodedImage.tobytes()
+      im_b64 = base64.b64encode(im_bytes)
+      return Response(im_b64)
+  return "Request error"
 
 @app.route("/video_feed_color")
 def video_feed_color():
