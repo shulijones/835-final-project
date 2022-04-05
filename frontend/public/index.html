@@ -3,6 +3,7 @@
 <div id="app">
   {{ message }}
   {{ speech }}
+  {{ mode }}
   <img src="http://localhost:8080/api/video_feed">
 </div>
 
@@ -12,6 +13,7 @@
       return {
         message: 'Hello Vue!',
         speech: '[Your speech here]',
+        mode: 'default'
       }
     },
     methods: {
@@ -23,6 +25,11 @@
       recognition.onresult = (event) => { 
         // note: arrow function syntax is crucial so that 'this' keeps larger scope
         this.speech = event.results[event.results.length-1][0].transcript;
+
+        if (this.speech.includes("color")){
+          this.mode = "color"
+        } else if (this.speech.includes("default"))
+          this.mode = "default"
       }
       recognition.onend = function(event) {
         setTimeout(function() {
