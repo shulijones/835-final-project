@@ -8,7 +8,7 @@
   {{ mode }}
   {{ src_string }}
   <img :src=src_string>
-  <img :src=single_image>
+  <img v-if="single_image" :src=single_image>
 </div>
 
 <script>
@@ -17,7 +17,7 @@
       return {
         message: 'Hello Vue!',
         speech: '[Your speech here]',
-        single_image: "http://localhost:8080/api/video_feed",
+        single_image: "",
         src_string: 'http://localhost:8080/api/video_feed',
         mode: 'default'
       }
@@ -35,11 +35,18 @@
         if (this.speech.includes("color")){
           this.mode = "color";
           this.src_string = 'http://localhost:8080/api/video_feed_color';
-          
-
         } else if (this.speech.includes("default")) {
           this.mode = "default";
           this.src_string = 'http://localhost:8080/api/video_feed';
+        } else if (this.speech.includes("take picture") ||
+                  this.speech.includes("take a picture") ) {
+          axios.get('http://localhost:8080/api/get_picture')
+            .then((response) => {
+              this.single_image = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+            console.log(error)
+        });
         }
       }
       recognition.onend = function(event) {
@@ -48,14 +55,6 @@
         }, 1000);
       };
       recognition.start();
-
-      axios.get('http://localhost:8080/api/current_image')
-        .then((response) => {
-          this.single_image = "data:image/jpg;base64," + response.data
-        })
-        .catch((error) => {
-         console.log(error)
-        });
     }
   }).mount('#app')
 </script>

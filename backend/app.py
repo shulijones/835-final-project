@@ -11,6 +11,7 @@ import imutils
 import time
 import cv2
 import base64
+import numpy as np
 
 outputFrame = None
 colorOutputFrame = None
@@ -33,7 +34,8 @@ def get_video(frameCount):
     # read the next frame from the video stream and resize it
     frame = vs.read()
     frame = imutils.resize(frame, width=400)
-    outputFrame = frame.copy()
+    flipped_frame = cv2.flip(frame, flipCode=1)
+    outputFrame = flipped_frame.copy()
 
 
 def generate():
@@ -55,7 +57,7 @@ def generate():
 def color_track_frame():
     global colorOutputFrame
     img = cv2.GaussianBlur(outputFrame,(11,11),0)
-    overlay = img
+    overlay = outputFrame
     thresholded_img = img
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     thresholded_img = cv2.inRange(hsv_img, (40,55,55), (80,255,255))
@@ -74,7 +76,7 @@ def color_track_frame():
         #determine the x and y coordinates of the center of the object
         x = int(moments['m10']/area)
         y = int(moments['m01']/area)
-        overlay = cv2.circle(img, (x, y), 20, (255, 0, 0), 10)
+        overlay = cv2.circle(outputFrame, (x, y), 20, (255, 0, 0), 10)
     colorOutputFrame = overlay
 
 def generate_color_tracking():
@@ -104,13 +106,26 @@ def video_feed():
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
 
 
-@app.route("/current_image")
-def current_image():
+@app.route("/get_picture")
+def get_picture():
   # return a single video frame (as jpg)
   global outputFrame
   if outputFrame is not None:
-    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
-    # ensure the frame was successfully encoded
+    # crop the image to just show the picture (which we find via contours)
+    gray = cv2.cvtColor(outputFrame, cv2.COLOR_BGR2GRAY)
+
+    ret,thresh_img = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
+    thresh_img = cv2.dilate(thresh_img, np.ones((45, 45), np.uint8)) 
+    thresh_img = cv2.medianBlur(thresh_img, 25)
+
+    contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    contours = sorted(contours, key=cv2.contourArea)
+
+    x,y,w,h = cv2.boundingRect(contours[-2])
+    cropped_image = outputFrame[y:y+h,x :x+w]
+
+    # encode the image as a jpg and check the encoding was successful
+    (flag, encodedImage) = cv2.imencode(".jpg", cropped_image)
     if flag:
 		# yield the output frame in base 64 format
       im_bytes = encodedImage.tobytes()
