@@ -6,7 +6,8 @@
   {{ message }}
   {{ speech }}
   {{ mode }}
-  <img src="http://localhost:8080/api/video_feed">
+  {{ src_string }}
+  <img :src=src_string>
   <img :src=single_image>
 </div>
 
@@ -17,6 +18,7 @@
         message: 'Hello Vue!',
         speech: '[Your speech here]',
         single_image: "http://localhost:8080/api/video_feed",
+        src_string: 'http://localhost:8080/api/video_feed',
         mode: 'default'
       }
     },
@@ -31,9 +33,14 @@
         this.speech = event.results[event.results.length-1][0].transcript;
 
         if (this.speech.includes("color")){
-          this.mode = "color"
-        } else if (this.speech.includes("default"))
-          this.mode = "default"
+          this.mode = "color";
+          this.src_string = 'http://localhost:8080/api/video_feed_color';
+          
+
+        } else if (this.speech.includes("default")) {
+          this.mode = "default";
+          this.src_string = 'http://localhost:8080/api/video_feed';
+        }
       }
       recognition.onend = function(event) {
         setTimeout(function() {
