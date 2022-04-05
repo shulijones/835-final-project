@@ -1,10 +1,13 @@
 <script src="https://unpkg.com/vue@3"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 
 <div id="app">
   {{ message }}
   {{ speech }}
   {{ mode }}
   <img src="http://localhost:8080/api/video_feed">
+  <img :src=single_image>
 </div>
 
 <script>
@@ -13,6 +16,7 @@
       return {
         message: 'Hello Vue!',
         speech: '[Your speech here]',
+        single_image: "http://localhost:8080/api/video_feed",
         mode: 'default'
       }
     },
@@ -37,6 +41,14 @@
         }, 1000);
       };
       recognition.start();
+
+      axios.get('http://localhost:8080/api/current_image')
+        .then((response) => {
+          this.single_image = "data:image/jpg;base64," + response.data
+        })
+        .catch((error) => {
+         console.log(error)
+        });
     }
   }).mount('#app')
 </script>
