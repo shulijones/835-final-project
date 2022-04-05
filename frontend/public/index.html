@@ -19,7 +19,9 @@
         speech: '[Your speech here]',
         single_image: "http://localhost:8080/api/video_feed",
         src_string: 'http://localhost:8080/api/video_feed',
-        mode: 'default'
+        mode: 'default',
+        mode_old: 'default'
+
       }
     },
     methods: {
@@ -33,13 +35,21 @@
         this.speech = event.results[event.results.length-1][0].transcript;
 
         if (this.speech.includes("color")){
+          this.mode_old = this.mode
           this.mode = "color";
           this.src_string = 'http://localhost:8080/api/video_feed_color';
-          
+
 
         } else if (this.speech.includes("default")) {
+          this.mode_old = this.mode
           this.mode = "default";
           this.src_string = 'http://localhost:8080/api/video_feed';
+        }
+
+        if (this.mode != this.mode_old){
+          let utterance = new SpeechSynthesisUtterance("Switched Mode");
+          speechSynthesis.speak(utterance);
+          this.mode_old = this.mode
         }
       }
       recognition.onend = function(event) {
