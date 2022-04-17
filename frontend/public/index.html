@@ -38,12 +38,35 @@
     <img :src=single_image>
   </div>
   
+  
   <p>To take a picture of your current video
     and save the picture frame you're holding up, say "take a picture".
     To switch to color tracking mode, say "color". To switch to default mode
     (no color tracking), say "default". 
   </p>
+  <button  v-on:click="test()">
+    Place nail
+  </button>
+  
+<div id = "wall-img">
+  <img src="held_to_wall.jpg" style="max-width:100%;
+    max-height:100%;">
 </div>
+<div id="mydiv">
+  <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
+  <div id="mydivheader">
+    Click here to move
+  </div>
+  <div id = "poster">
+    <img id = "actual-poster" src="poster.jpg" style="max-width:100%;
+    max-height:100%;">
+  </div>
+</div>
+
+</div>
+
+
+
 
 <script>
   Vue.createApp({
@@ -56,11 +79,17 @@
       }
     },
     methods: {
+      test() {
+        var x = window.scrollY + document.querySelector("#actual-poster").getBoundingClientRect().top // Y
+
+        var y = window.scrollX + document.querySelector('#actual-poster').getBoundingClientRect().left // X
+        var y_r = window.scrollX + document.querySelector('#actual-poster').getBoundingClientRect().right// X
+        console.log(x,y,y_r)
+      },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
         // clicking on current step changes nothing, advancing more than one step
         // raises an alert and changes nothing
-
         if (newStep == this.step) {
           return; // do nothing
         } else if (newStep == this.step + 1) {
@@ -157,4 +186,75 @@
   .active {
     background-color: lightgreen !important; 
   }
+
+
+  #poster{
+      /* background-image: url("poster.jpg");
+      background-size: contain; */
+      width: 100px;
+      height: 100px;
+      
+    resize: both;
+    overflow: hidden;
+  }
+
+  #wall-img{
+    width: 500px;
+    height: auto;
+    opacity: 50%;
+  }
+
+  #mydiv {
+    position: absolute;
+    z-index: 9;
+
+}
 </style>
+
+
+<script>
+  dragElement(document.getElementById("mydiv"));
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (document.getElementById(elmnt.id + "header")) {
+    // if present, the header is where you move the DIV from:
+    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+  } else {
+    // otherwise, move the DIV from anywhere inside the DIV:
+    elmnt.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
+</script>
+
