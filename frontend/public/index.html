@@ -52,7 +52,7 @@
         speech: '[No speech yet!]',
         single_image: "",
         step: 0,
-        testvar: Date.now(),
+        lastStepChange: Date.now(),
       }
     },
     methods: {
@@ -77,10 +77,10 @@
           alert("You can't switch to that step!")
         }
       },
-      // speak(utterance){ 
-      //   let utt = new SpeechSynthesisUtterance(utterance);
-      //   speechSynthesis.speak(utt);
-      // }
+      speak(utterance){ 
+        let utt = new SpeechSynthesisUtterance(utterance);
+        speechSynthesis.speak(utt);
+      }
     },
     computed: {
       src_string() {
@@ -95,15 +95,17 @@
         // note: arrow function syntax is crucial so that 'this' keeps larger scope
         this.speech = event.results[event.results.length-1][0].transcript.toLowerCase();
         
-        // console.log("HI", this.testvar)
-        if (this.speech.includes("next step") ){ // && this.testvar
-          this.step += 1;
-          //this.testvar = false;
-          // console.log('test1', this.testvar)
+        // only advance to next step if it's been 0.1 sec or more
+        // since last advancing (to prevent same speech being recognized
+        // multiple times)
+        if (this.speech.includes("next step") && 
+              this.lastStepChange < Date.now() - 100) { 
 
+          this.step += 1;
+          this.lastStepChange = Date.now();
           recognition.stop();
-          // this.testvar = true; doesnt work
-          // this.speak("Advancing to next step");
+          this.speak("Advancing to next step");
+
         } else if (this.speech.includes("take picture") ||
                   this.speech.includes("take a picture") ) {
           axios.get('http://localhost:8080/api/get_picture')
@@ -114,12 +116,6 @@
               console.log(error)
             });
         }
-
-        // if (this.mode != this.mode_old){
-          // let utterance = new SpeechSynthesisUtterance("Switched Mode");
-          // speechSynthesis.speak(utterance);
-        //   this.mode_old = this.mode
-        // }
       }
       recognition.onend = function(event) {
         setTimeout(function() {
