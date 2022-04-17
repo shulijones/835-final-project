@@ -5,20 +5,43 @@
 <div id="app">
   <h1>Picture Hanging Helper -- Prototype</h1>
   <h2>Developed by Shuli Jones and Emily Caragay</h2>
+  <div id="steps">
+    <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
+      Identify wall
+    </button> <div class="arrow-right"></div>
+  
+    <button v-bind:class="{'active': step == 1}" v-on:click="changeStepMaybe(1)">
+      Capture picture
+    </button> <div class="arrow-right"></div>
+    
+    <button v-bind:class="{'active': step == 2}" v-on:click="changeStepMaybe(2)">
+      Show hanging point
+    </button>  <div class="arrow-right"></div>
+   
+    <button v-bind:class="{'active': step == 3}" v-on:click="changeStepMaybe(3)">
+      Show hanging location
+    </button> <div class="arrow-right"></div>
+    
+    <button v-bind:class="{'active': step == 4}" v-on:click="changeStepMaybe(4)">
+      Place nail
+    </button>
+  </div>
   <p>What we just heard you say: {{ speech }}</p>
-  <p>You are currently in mode: {{ mode }} </p>
 
-  <p>Your video:</p>
-  <img :src=src_string>
+  <div id="video-feed" v-if="step != 2">
+    <p>Your video:</p>
+    <img :src=src_string>
+  </div>
   
   <div v-if="single_image">
     Your picture:
     <img :src=single_image>
   </div>
   
-  <p>To switch to color tracking mode, say "color". To switch to default mode
-    (no color tracking), say "default". To take a picture of your current video
+  <p>To take a picture of your current video
     and save the picture frame you're holding up, say "take a picture".
+    To switch to color tracking mode, say "color". To switch to default mode
+    (no color tracking), say "default". 
   </p>
 </div>
 
@@ -28,13 +51,41 @@
       return {
         speech: '[No speech yet!]',
         single_image: "",
-        src_string: 'http://localhost:8080/api/video_feed',
-        mode: 'default',
-        mode_old: 'default'
-
+        step: 0,
+        testvar: Date.now(),
       }
     },
     methods: {
+      changeStepMaybe(newStep) {
+        // allows you to go back any number of steps and advance one step
+        // clicking on current step changes nothing, advancing more than one step
+        // raises an alert and changes nothing
+
+        if (newStep == this.step) {
+          return; // do nothing
+        } else if (newStep == this.step + 1) {
+          this.step += 1; // advance one step
+        } else if (newStep < this.step) {
+          // raise alert to make sure they want to go back and lose progress
+          let conf = confirm("This step is before your current step." +
+                  " If you go backwards, your intermediate progress will be lost.");
+          console.log(conf)
+          if (conf) {
+            this.step = newStep;
+          }
+        } else {
+          alert("You can't switch to that step!")
+        }
+      },
+      // speak(utterance){ 
+      //   let utt = new SpeechSynthesisUtterance(utterance);
+      //   speechSynthesis.speak(utt);
+      // }
+    },
+    computed: {
+      src_string() {
+         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' : 'http://localhost:8080/api/video_feed'
+      }
     },
     mounted() {
       var recognition = new webkitSpeechRecognition();
@@ -42,18 +93,17 @@
       recognition.interimResults = true;
       recognition.onresult = (event) => { 
         // note: arrow function syntax is crucial so that 'this' keeps larger scope
-        this.speech = event.results[event.results.length-1][0].transcript;
+        this.speech = event.results[event.results.length-1][0].transcript.toLowerCase();
+        
+        // console.log("HI", this.testvar)
+        if (this.speech.includes("next step") ){ // && this.testvar
+          this.step += 1;
+          //this.testvar = false;
+          // console.log('test1', this.testvar)
 
-        if (this.speech.includes("color")){
-          this.mode_old = this.mode
-          this.mode = "color tracking";
-          this.src_string = 'http://localhost:8080/api/video_feed_color';
-
-
-        } else if (this.speech.includes("default")) {
-          this.mode_old = this.mode
-          this.mode = "default";
-          this.src_string = 'http://localhost:8080/api/video_feed';
+          recognition.stop();
+          // this.testvar = true; doesnt work
+          // this.speak("Advancing to next step");
         } else if (this.speech.includes("take picture") ||
                   this.speech.includes("take a picture") ) {
           axios.get('http://localhost:8080/api/get_picture')
@@ -61,15 +111,15 @@
               this.single_image = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
-            console.log(error)
-        });
+              console.log(error)
+            });
         }
 
-        if (this.mode != this.mode_old){
-          let utterance = new SpeechSynthesisUtterance("Switched Mode");
-          speechSynthesis.speak(utterance);
-          this.mode_old = this.mode
-        }
+        // if (this.mode != this.mode_old){
+          // let utterance = new SpeechSynthesisUtterance("Switched Mode");
+          // speechSynthesis.speak(utterance);
+        //   this.mode_old = this.mode
+        // }
       }
       recognition.onend = function(event) {
         setTimeout(function() {
@@ -80,3 +130,31 @@
     }
   }).mount('#app')
 </script>
+
+<style>
+  #steps {
+    display: flex;
+    align-items: center;
+  }
+
+  #steps > button {
+    background-color: lightblue;
+    padding: 10px;
+    margin: 0;
+    border: 1px solid black;
+    border-radius: 5px;
+  }
+
+.arrow-right {
+    width: 0; 
+    height: 0; 
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid blue;
+    margin: 2px;
+}
+
+  .active {
+    background-color: lightgreen !important; 
+  }
+</style>
