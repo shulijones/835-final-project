@@ -15,6 +15,10 @@ import numpy as np
 
 outputFrame = None
 colorOutputFrame = None
+lastSavedLocation = None
+lastSavedWall = None
+lastSavedPicture = None
+colorLocation = None
 
 # initialize a flask object
 app = Flask(__name__)
@@ -55,7 +59,7 @@ def generate():
 			bytearray(encodedImage) + b'\r\n')
 
 def color_track_frame():
-    global colorOutputFrame
+    global colorOutputFrame, colorLocation
     img = cv2.GaussianBlur(outputFrame,(11,11),0)
     overlay = outputFrame
     thresholded_img = img
@@ -76,6 +80,7 @@ def color_track_frame():
         #determine the x and y coordinates of the center of the object
         x = int(moments['m10']/area)
         y = int(moments['m01']/area)
+        colorLocation = [x, y]
         overlay = cv2.circle(outputFrame, (x, y), 20, (255, 0, 0), 10)
     colorOutputFrame = overlay
 
@@ -96,6 +101,15 @@ def generate_color_tracking():
     yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
 			bytearray(encodedImage) + b'\r\n')
 
+@app.route("/direction/<orientation>")
+def direction(orientation):
+	# return which direction (L, R, U, D) the user needs to move in based
+  # on their desired hanging location and current color-tracked location
+  # returns P if user does not need to move
+  if orientation == "horizontal":
+    return "L"
+  return "U"
+
 @app.route("/video_feed")
 def video_feed():
 	# return the response generated along with the specific media
@@ -105,11 +119,27 @@ def video_feed():
   return Response(generate(),
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
 
-@app.route("/get_video_frame")
-def get_video_frame():
+@app.route("/get_video_frame_location")
+def get_video_frame_location():
   # return a single video frame (as jpg)
-  global outputFrame
+  global outputFrame, lastSavedLocation
   if outputFrame is not None:
+    # encode the image as a jpg and check the encoding was successful
+    lastSavedLocation = outputFrame
+    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+    if flag:
+		# yield the output frame in base 64 format
+      im_bytes = encodedImage.tobytes()
+      im_b64 = base64.b64encode(im_bytes)
+      return Response(im_b64)
+  return "Request error"
+
+@app.route("/get_video_frame_wall")
+def get_video_frame_wall():
+  # return a single video frame (as jpg)
+  global outputFrame, lastSavedWall
+  if outputFrame is not None:
+    lastSavedWall = outputFrame
     # encode the image as a jpg and check the encoding was successful
     (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
     if flag:
@@ -122,7 +152,7 @@ def get_video_frame():
 @app.route("/get_picture")
 def get_picture():
   # return a single video frame (as jpg), cropped to just the picture
-  global outputFrame
+  global outputFrame, lastSavedPicture
   if outputFrame is not None:
     # crop the image to just show the picture (which we find via contours)
     gray = cv2.cvtColor(outputFrame, cv2.COLOR_BGR2GRAY)
@@ -136,6 +166,7 @@ def get_picture():
 
     x,y,w,h = cv2.boundingRect(contours[-2])
     cropped_image = outputFrame[y:y+h,x :x+w]
+    lastSavedPicture = cropped_image
 
     # encode the image as a jpg and check the encoding was successful
     (flag, encodedImage) = cv2.imencode(".jpg", cropped_image)

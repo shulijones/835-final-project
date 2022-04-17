@@ -58,7 +58,11 @@
 
     <p v-if="step == 4">
       <b>Step 5: Place nail.</b> It's finally time to place the nail!
-      Head on over to the wall, UHHH have not implemented
+      Head on over to the wall with your bright green bottle cap in hand. The computer
+      will help you place the nail, first horizontally, then vertically. Say "horizontal"
+      to get started. You'll HEAR SOMETHING. When you HEAR SOMETHING ELSE, say "vertical"
+      to repeat the process in the vertical direction. When you're done, you're done!
+      Go ahead and hang your picture!
     </p>
   </div>
 
@@ -66,6 +70,14 @@
     <p>Your video:</p>
     <img :src=src_string>
   </div>
+
+  <div v-if="step == 4">
+    You need to move: {{ direction }}
+  </div>
+
+  <button v-on:click="test()">
+    Test button
+  </button>
 
   <div id="image-display">
   </p> Here are the images we've saved for you so far. <p>
@@ -96,9 +108,16 @@
         hang_location: "",
         step: 0,
         lastStepChange: Date.now(),
+        direction: "",
+        directions: {"L": "left", "R": "right",
+                      "U": "up", "D": "down"},
+        orientation: "horizontal"
       }
     },
     methods: {
+      test(){
+        console.log("test")
+      },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
         // clicking on current step changes nothing, advancing more than one step
@@ -118,20 +137,42 @@
           }
         } else {
           alert("You can't switch to that step -- it's too far ahead." + 
-                "Complete the intermediate step(s) first.")
+                " Complete the intermediate step(s) first.")
         }
       },
-      speak(utterance){ 
+      speak(utterance) { 
         let utt = new SpeechSynthesisUtterance(utterance);
         speechSynthesis.speak(utt);
+      },
+      getDirection() {
+        if (this.step == 4) {
+          axios.get('http://localhost:8080/api/direction/' + this.orientation)
+            .then((response) => {
+              const result = response.data
+              if (result == "P") {
+                this.speak("You're all done!")
+              }
+              this.direction = this.directions[result]
+              this.speak("Move " + this.direction)
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        }
       }
     },
     computed: {
       src_string() {
-         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' : 'http://localhost:8080/api/video_feed'
-      }
+         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' 
+                                : 'http://localhost:8080/api/video_feed'
+      },
     },
     mounted() {
+      // Start the function which will continously do nail positioning when in step 4
+      // every 5 seconds right now
+      setInterval(this.getDirection, 5000)
+
+      // Set up Speech Recognition
       var recognition = new webkitSpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -148,10 +189,10 @@
           this.step += 1;
           this.lastStepChange = Date.now();
           recognition.stop();
-          this.speak("Advancing to next step");
+          this.speak("Advancing to step " + this.step);
 
         } else if (this.speech.includes("save wall")) {
-          axios.get('http://localhost:8080/api/get_video_frame')
+          axios.get('http://localhost:8080/api/get_video_frame_wall')
             .then((response) => {
               this.wall = "data:image/jpg;base64," + response.data
             })
@@ -167,13 +208,15 @@
               console.log(error)
             });
         } else if (this.speech.includes("save location")) {
-          axios.get('http://localhost:8080/api/get_video_frame')
+          axios.get('http://localhost:8080/api/get_video_frame_location')
             .then((response) => {
               this.hang_location = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
               console.log(error)
             });
+        } else if (this.speech.includes("vertical")) {
+          this.orientation = 'vertical'
         }
       }
       recognition.onend = function(event) {
