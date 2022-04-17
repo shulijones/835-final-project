@@ -5,6 +5,8 @@
 <div id="app">
   <h1>Picture Hanging Helper -- Prototype</h1>
   <h2>Developed by Shuli Jones and Emily Caragay</h2>
+
+  <h3>Hang a picture perfectly in only five steps!</h3>
   <div id="steps">
     <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
       Identify wall
@@ -26,16 +28,73 @@
       Place nail
     </button>
   </div>
-  <p>What we just heard you say: {{ speech }}</p>
+
+  <div id="instructions">
+    <p v-if="step == 0">
+      <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
+      Position your computer so that the webcam shows all of the wall and say
+      "save wall".
+    </p>
+
+    <p v-if="step == 1">
+      <b>Step 2: Capture picture.</b> Show us what your picture looks like!
+      Hold the picture up close to the camera so that all of it is visible and say 
+      "capture picture".
+    </p>
+
+    <p v-if="step == 2">
+      <b>Step 3: Show hanging point.</b> Tell us how your picture will hang!
+      On the image of your picture below, click where the nail will go and then 
+      click save. Based on that
+      information, and what you'll tell us in Step 4 about where the picture goes on
+      the wall, we'll calculate the nail's location.
+    </p>
+
+    <p v-if="step == 3">
+      <b>Step 4: Show hanging location.</b> Show us where your picture will hang!
+      Hold your picture up to the wall right where you want it to go. Then say "save location".
+      Then, come back here to match up your original picture to its location.
+    </p>
+
+    <p v-if="step == 4">
+      <b>Step 5: Place nail.</b> It's finally time to place the nail!
+      Head on over to the wall with your bright green bottle cap in hand. The computer
+      will help you place the nail, first horizontally, then vertically. Say "horizontal"
+      to get started. You'll HEAR SOMETHING. When you HEAR SOMETHING ELSE, say "vertical"
+      to repeat the process in the vertical direction. When you're done, you're done!
+      Go ahead and hang your picture!
+    </p>
+  </div>
 
   <div id="video-feed" v-if="step != 2">
     <p>Your video:</p>
     <img :src=src_string>
   </div>
-  
-  <div v-if="single_image">
-    Your picture:
-    <img :src=single_image>
+
+  <div v-if="step == 4">
+    You need to move: {{ direction }}
+  </div>
+
+  <button v-on:click="test()">
+    Test button
+  </button>
+
+  <div id="image-display">
+  </p> Here are the images we've saved for you so far. <p>
+    <div v-if="wall">
+      Your wall: <br>
+      <img :src=wall>
+    </div>
+    
+    <div v-if="capture_picture">
+      Your picture: <br>
+      <img :src=capture_picture>
+    </div>
+
+    <div v-if="hang_location">
+      Your hanging location: <br>
+      <img :src=hang_location>
+    </div>
   </div>
   
   
@@ -73,9 +132,15 @@
     data() {
       return {
         speech: '[No speech yet!]',
-        single_image: "",
+        wall: "",
+        capture_picture: "",
+        hang_location: "",
         step: 0,
-        testvar: Date.now(),
+        lastStepChange: Date.now(),
+        direction: "",
+        directions: {"L": "left", "R": "right",
+                      "U": "up", "D": "down"},
+        orientation: "horizontal"
       }
     },
     methods: {
@@ -103,20 +168,43 @@
             this.step = newStep;
           }
         } else {
-          alert("You can't switch to that step!")
+          alert("You can't switch to that step -- it's too far ahead." + 
+                " Complete the intermediate step(s) first.")
         }
       },
-      // speak(utterance){ 
-      //   let utt = new SpeechSynthesisUtterance(utterance);
-      //   speechSynthesis.speak(utt);
-      // }
+      speak(utterance) { 
+        let utt = new SpeechSynthesisUtterance(utterance);
+        speechSynthesis.speak(utt);
+      },
+      getDirection() {
+        if (this.step == 4) {
+          axios.get('http://localhost:8080/api/direction/' + this.orientation)
+            .then((response) => {
+              const result = response.data
+              if (result == "P") {
+                this.speak("You're all done!")
+              }
+              this.direction = this.directions[result]
+              this.speak("Move " + this.direction)
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        }
+      }
     },
     computed: {
       src_string() {
-         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' : 'http://localhost:8080/api/video_feed'
-      }
+         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' 
+                                : 'http://localhost:8080/api/video_feed'
+      },
     },
     mounted() {
+      // Start the function which will continously do nail positioning when in step 4
+      // every 5 seconds right now
+      setInterval(this.getDirection, 5000)
+
+      // Set up Speech Recognition
       var recognition = new webkitSpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -124,31 +212,44 @@
         // note: arrow function syntax is crucial so that 'this' keeps larger scope
         this.speech = event.results[event.results.length-1][0].transcript.toLowerCase();
         
-        // console.log("HI", this.testvar)
-        if (this.speech.includes("next step") ){ // && this.testvar
-          this.step += 1;
-          //this.testvar = false;
-          // console.log('test1', this.testvar)
+        // only advance to next step if it's been 0.1 sec or more
+        // since last advancing (to prevent same speech being recognized
+        // multiple times)
+        if (this.speech.includes("next step") && 
+              this.lastStepChange < Date.now() - 100) { 
 
+          this.step += 1;
+          this.lastStepChange = Date.now();
           recognition.stop();
-          // this.testvar = true; doesnt work
-          // this.speak("Advancing to next step");
-        } else if (this.speech.includes("take picture") ||
-                  this.speech.includes("take a picture") ) {
-          axios.get('http://localhost:8080/api/get_picture')
+          this.speak("Advancing to step " + this.step);
+
+        } else if (this.speech.includes("save wall")) {
+          axios.get('http://localhost:8080/api/get_video_frame_wall')
             .then((response) => {
-              this.single_image = "data:image/jpg;base64," + response.data
+              this.wall = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
               console.log(error)
             });
+        } else if (this.speech.includes("capture picture")) {
+          axios.get('http://localhost:8080/api/get_picture')
+            .then((response) => {
+              this.capture_picture = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        } else if (this.speech.includes("save location")) {
+          axios.get('http://localhost:8080/api/get_video_frame_location')
+            .then((response) => {
+              this.hang_location = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        } else if (this.speech.includes("vertical")) {
+          this.orientation = 'vertical'
         }
-
-        // if (this.mode != this.mode_old){
-          // let utterance = new SpeechSynthesisUtterance("Switched Mode");
-          // speechSynthesis.speak(utterance);
-        //   this.mode_old = this.mode
-        // }
       }
       recognition.onend = function(event) {
         setTimeout(function() {
@@ -174,14 +275,14 @@
     border-radius: 5px;
   }
 
-.arrow-right {
-    width: 0; 
-    height: 0; 
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 10px solid blue;
-    margin: 2px;
-}
+  .arrow-right {
+      width: 0; 
+      height: 0; 
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 10px solid blue;
+      margin: 2px;
+  }
 
   .active {
     background-color: lightgreen !important; 
@@ -209,6 +310,15 @@
     z-index: 9;
 
 }
+
+#image-display {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #image-display > div {
+    margin: 10px;
+  }
 </style>
 
 
@@ -257,4 +367,3 @@ function dragElement(elmnt) {
 }
 
 </script>
-
