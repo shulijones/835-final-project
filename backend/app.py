@@ -105,10 +105,23 @@ def video_feed():
   return Response(generate(),
 		mimetype = "multipart/x-mixed-replace; boundary=frame")
 
-
+@app.route("/get_video_frame")
+def get_video_frame():
+  # return a single video frame (as jpg)
+  global outputFrame
+  if outputFrame is not None:
+    # encode the image as a jpg and check the encoding was successful
+    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+    if flag:
+		# yield the output frame in base 64 format
+      im_bytes = encodedImage.tobytes()
+      im_b64 = base64.b64encode(im_bytes)
+      return Response(im_b64)
+  return "Request error"
+  
 @app.route("/get_picture")
 def get_picture():
-  # return a single video frame (as jpg)
+  # return a single video frame (as jpg), cropped to just the picture
   global outputFrame
   if outputFrame is not None:
     # crop the image to just show the picture (which we find via contours)

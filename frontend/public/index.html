@@ -66,10 +66,23 @@
     <p>Your video:</p>
     <img :src=src_string>
   </div>
-  
-  <div v-if="single_image">
-    Your picture:
-    <img :src=single_image>
+
+  <div id="image-display">
+  </p> Here are the images we've saved for you so far. <p>
+    <div v-if="wall">
+      Your wall: <br>
+      <img :src=wall>
+    </div>
+    
+    <div v-if="capture_picture">
+      Your picture: <br>
+      <img :src=capture_picture>
+    </div>
+
+    <div v-if="hang_location">
+      Your hanging location: <br>
+      <img :src=hang_location>
+    </div>
   </div>
 </div>
 
@@ -78,7 +91,9 @@
     data() {
       return {
         speech: '[No speech yet!]',
-        single_image: "",
+        wall: "",
+        capture_picture: "",
+        hang_location: "",
         step: 0,
         lastStepChange: Date.now(),
       }
@@ -135,11 +150,26 @@
           recognition.stop();
           this.speak("Advancing to next step");
 
-        } else if (this.speech.includes("take picture") ||
-                  this.speech.includes("take a picture") ) {
+        } else if (this.speech.includes("save wall")) {
+          axios.get('http://localhost:8080/api/get_video_frame')
+            .then((response) => {
+              this.wall = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        } else if (this.speech.includes("capture picture")) {
           axios.get('http://localhost:8080/api/get_picture')
             .then((response) => {
-              this.single_image = "data:image/jpg;base64," + response.data
+              this.capture_picture = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        } else if (this.speech.includes("save location")) {
+          axios.get('http://localhost:8080/api/get_video_frame')
+            .then((response) => {
+              this.hang_location = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
               console.log(error)
@@ -170,16 +200,25 @@
     border-radius: 5px;
   }
 
-.arrow-right {
-    width: 0; 
-    height: 0; 
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 10px solid blue;
-    margin: 2px;
-}
+  .arrow-right {
+      width: 0; 
+      height: 0; 
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 10px solid blue;
+      margin: 2px;
+  }
 
   .active {
     background-color: lightgreen !important; 
+  }
+
+  #image-display {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #image-display > div {
+    margin: 10px;
   }
 </style>
