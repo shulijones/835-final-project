@@ -5,6 +5,8 @@
 <div id="app">
   <h1>Picture Hanging Helper -- Prototype</h1>
   <h2>Developed by Shuli Jones and Emily Caragay</h2>
+
+  <h3>Hang a picture perfectly in only five steps!</h3>
   <div id="steps">
     <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
       Identify wall
@@ -26,7 +28,39 @@
       Place nail
     </button>
   </div>
-  <p>What we just heard you say: {{ speech }}</p>
+
+  <div id="instructions">
+    <p v-if="step == 0">
+      <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
+      Position your computer so that the webcam shows all of the wall and say
+      "save wall".
+    </p>
+
+    <p v-if="step == 1">
+      <b>Step 2: Capture picture.</b> Show us what your picture looks like!
+      Hold the picture up close to the camera so that all of it is visible and say 
+      "capture picture".
+    </p>
+
+    <p v-if="step == 2">
+      <b>Step 3: Show hanging point.</b> Tell us how your picture will hang!
+      On the image of your picture below, click where the nail will go and then 
+      click save. Based on that
+      information, and what you'll tell us in Step 4 about where the picture goes on
+      the wall, we'll calculate the nail's location.
+    </p>
+
+    <p v-if="step == 3">
+      <b>Step 4: Show hanging location.</b> Show us where your picture will hang!
+      Hold your picture up to the wall right where you want it to go. Then say "save location".
+      Then, come back here to match up your original picture to its location.
+    </p>
+
+    <p v-if="step == 4">
+      <b>Step 5: Place nail.</b> It's finally time to place the nail!
+      Head on over to the wall, UHHH have not implemented
+    </p>
+  </div>
 
   <div id="video-feed" v-if="step != 2">
     <p>Your video:</p>
@@ -37,12 +71,6 @@
     Your picture:
     <img :src=single_image>
   </div>
-  
-  <p>To take a picture of your current video
-    and save the picture frame you're holding up, say "take a picture".
-    To switch to color tracking mode, say "color". To switch to default mode
-    (no color tracking), say "default". 
-  </p>
 </div>
 
 <script>
@@ -74,7 +102,8 @@
             this.step = newStep;
           }
         } else {
-          alert("You can't switch to that step!")
+          alert("You can't switch to that step -- it's too far ahead." + 
+                "Complete the intermediate step(s) first.")
         }
       },
       speak(utterance){ 
