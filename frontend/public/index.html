@@ -6,12 +6,8 @@
   <h1>Picture Hanging Helper -- Prototype</h1>
   <h2>Developed by Shuli Jones and Emily Caragay</h2>
 
-  <h3>Hang a picture perfectly in only five steps!</h3>
+  <h3>Hang a picture in only five steps!</h3>
   <div id="steps">
-    <!-- <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
-      Identify wall
-    </button> <div class="arrow-right"></div> -->
-  
     <button v-bind:class="{'active': step == 1}" v-on:click="changeStepMaybe(1)">
       Capture picture
     </button> <div class="arrow-right"></div>
@@ -33,19 +29,15 @@
     </button>
   </div>
 
-  <div id="instructions">
+  <div id="instructions" style="width:70%">
     <h3> Instructions </h3>
-
-    <!-- <p v-if="step == 0">
-      <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
-      Position your computer so that the webcam shows all of the wall and say
-      "save wall".
-    </p> -->
 
     <p v-if="step == 1">
       <b>Step 1: Capture picture.</b> Show us what your picture looks like!
       Hold the picture up close to the camera so that all of it is visible and say 
-      "capture picture".
+      "capture picture". You can retake it as many times as you want; when you're
+      happy with it you can move to the next step with your mouse or by saying "next step".
+      When you're taking the picture, be sure to hold still for three seconds after speaking.
     </p>
 
     <p v-if="step == 2">
@@ -57,24 +49,29 @@
 
     <p v-if="step == 3">
       <b>Step 3: Show hanging location.</b> Show us where your picture will hang!
-      Hold your picture up to the wall right where you want it to go. Then say "save location".
- 
+      Hold your picture up to the wall right where you want it to go. 
+      Then say "save location". You can redo this as many times as you want; when you're
+      happy with it, move to the next step.
     </p>
 
     <p v-if="step == 4">
-      <b>Step 4" Match up your original picture to its location by dragging
-      and resizing it. Click the "done" button when you're done.
+      <b>Step 4: Arrange picture. </b> Match up your picture to its 
+      location by dragging and resizing it. This is also your chance to adjust the location 
+      a little bit if you weren't fully happy with where it went originally: 
+      the computer will place the nail based on the location where you drag the picture,
+      not where it is in the original photo.
+      Click the "save" button when you're done.
     </p>
 
 
     <p v-if="step == 5">
       <b>Step 5: Place nail.</b> It's finally time to place the nail!
       Head on over to the wall with your bright green bottle cap in hand. The computer
-      will help you place the nail, first horizontally, then vertically. Say "horizontal"
-      to get started. The computer will tell you whether to move left or right, and let
+      will help you place the nail, first horizontally, then vertically. First,
+      the computer will tell you whether to move left or right, and let
       you know when you're all mtached up. Then, say "vertical" to repeat the process
-      in the vertical direction. When you're done, you're done!
-      Go ahead and hang your picture!
+      in the vertical direction. If you want, you can say "horizontal" to do a quick check
+      on your horizontal alignment. When you're all set, go ahead and hang your picture!
     </p>
   </div>
 
@@ -87,59 +84,55 @@
     You need to move: {{ direction }}
   </div>
 
-
-
   <div id="image-display">
-  </p> Here's what we have as your picture. (If it's not right, feel
-      free to try again.) <p>
-    <!-- <div v-if="wall">
-      Your wall: <br>
-      <img :src=wall>
-    </div> -->
+    <p v-if="step == 1"> 
+      Here's what we have as your picture. If it's not right, feel
+      free to try again. If nothing appears, try making sure all the picture's
+      edges are visible and try again.
+    </p>
     
     <div v-if="capture_picture">
-      Your picture: <br>
-      <img :src=capture_picture>
+      Your picture: <br><br>
+      <img :src=capture_picture style="width:250px">
     </div>
 
-    <!-- <div v-if="hang_location">
+    <div v-if="hang_location && step == 3">
       Your hanging location: <br>
       <img :src=hang_location>
-    </div> -->
+    </div>
   </div>
 
   <button v-if="step == 4" v-on:click="savePictureLocationOnWall()">
-    save picture location
+    Save picture location
   </button>
   
-<div id="wall-img"  v-bind:class="{'visible': step == 4} ">
-  <img :src=hang_location style="max-width:100%;
-    max-height:100%;">
-</div>
-
-<div id="mydiv"  v-bind:class="{'visible': step == 4}">
-  <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
-  <div id="mydivheader">
-    Click here to move
+  <div id="wall-img"  v-bind:class="{'visible': step == 4} ">
+    <img :src=hang_location style="max-width:100%;
+      max-height:100%;">
   </div>
-  <div id = "poster">
-    <img id = "actual-poster" :src=capture_picture style="width:100%;
-    object-fit: cover; overflow: hidden;
-    height:100%;">
+
+  <div id="mydiv"  v-bind:class="{'visible': step == 4}">
+    <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
+    <div id="mydivheader">
+      [Click and drag here to move the image]
+    </div>
+    <div id = "poster">
+      <img id = "actual-poster" :src=capture_picture style="width:100%;
+      object-fit: cover; overflow: hidden;
+      height:100%;">
+    </div>
   </div>
-</div>
 
+  <button v-on:click="placeHangingPoint()" v-if="step == 2">
+    Save hanging point
+  </button>
 
-<button v-on:click="placeHangingPoint()" v-if="step == 2">
-  Save
-</button>
+  <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
-<div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
-
-<div id = "poster-img"  v-if="step == 2">
-  <img :src=capture_picture style="max-width:100%;
-    max-height:100%;">
-</div>
+  <div id = "poster-img"  v-if="step == 2">
+    <img :src=capture_picture style="width: 400px; max-width:100%;
+      max-height:100%;">
+  </div>
 
 </div>
 
@@ -157,7 +150,8 @@
         direction: "",
         directions: {"L": "left", "R": "right",
                       "U": "up", "D": "down"},
-        orientation: "horizontal"
+        orientation: "horizontal",
+        orientationDone: false,
       }
     },
     methods: {
@@ -176,6 +170,7 @@
         console.log('frame corner', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/frame_corner', 
                   {'x': imgx - wallx, 'y': imgy - wally})
+        alert("Your picture location has been saved. You can move to the next step.")  
       },
 
       placeHangingPoint() {
@@ -195,6 +190,7 @@
         console.log('hanging point', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/hanging_point', 
                   {'x': imgx - wallx, 'y': imgy - wally})
+        alert("Your hanging point has been saved. You can move to the next step.")
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -222,7 +218,7 @@
         speechSynthesis.speak(utt);
       },
       getDirection() {
-        if (this.step == 5) {
+        if (this.step == 5 && !this.orientationDone) {
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
@@ -231,6 +227,7 @@
                 console.log("the backend returned the word 'error'")
               }
               else if (result == "P") {
+                this.orientationDone = true;
                 this.speak("You're all done with this orientation!")
               } else if (result in this.directions) {
                 this.direction = this.directions[result]
@@ -275,17 +272,11 @@
           recognition.stop();
           this.speak("Advancing to step " + this.step);
 
-        } else if (this.speech.includes("save wall")) {
-          axios.get('http://localhost:8080/api/get_video_frame_wall')
-            .then((response) => {
-              this.wall = "data:image/jpg;base64," + response.data
-            })
-            .catch((error) => {
-              console.log(error)
-            });
         } else if (this.speech.includes("capture picture")) {
+          console.log("Got CP speech")
           axios.get('http://localhost:8080/api/get_picture')
             .then((response) => {
+              console.log("got CP response")
               this.capture_picture = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
@@ -295,12 +286,17 @@
           axios.get('http://localhost:8080/api/get_video_frame_location')
             .then((response) => {
               this.hang_location = "data:image/jpg;base64," + response.data
+              this.speak("Location saved")
             })
             .catch((error) => {
               console.log(error)
             });
         } else if (this.speech.includes("vertical")) {
           this.orientation = 'vertical'
+          this.orientationDone = false;
+        } else if (this.speech.includes("horizontal")) {
+          this.orientation = 'horizontal'
+          this.orientationDone = false;
         }
       }
       recognition.onend = function(event) {
@@ -314,6 +310,10 @@
 </script>
 
 <style>
+  button {
+    margin: 10px;
+  }
+
   #steps {
     display: flex;
     align-items: center;
@@ -342,8 +342,6 @@
 
   .visible{
     visibility: visible !important;
-}
-
   }
 
   .not-visible{
@@ -378,22 +376,22 @@
     z-index: 9;
     visibility: hidden;
 
-}
+  }
 
-#placement-dot {
-    position: absolute;
-    z-index: 9;
-    height: 25px;
-    width: 25px;
-    background-color: transparent;
-    border-radius: 50%;
-    display: inline-block;
+  #placement-dot {
+      position: absolute;
+      z-index: 9;
+      height: 25px;
+      width: 25px;
+      background-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
 
-}
+  }
 
-#image-display {
-    display: flex;
-    flex-direction: column;
+  #image-display {
+      display: flex;
+      flex-direction: column;
   }
 
   #image-display > div {
