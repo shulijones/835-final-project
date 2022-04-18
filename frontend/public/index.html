@@ -111,6 +111,9 @@
   <img src="held_to_wall.jpg" style="max-width:100%;
     max-height:100%;">
 </div>
+
+
+
 <div id="mydiv">
   <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
   <div id="mydivheader">
@@ -121,6 +124,19 @@
     max-height:100%;">
   </div>
 </div>
+
+<div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
+
+<div id = "wall-img"  v-if="step == 2">
+  <img src="poster.jpg" style="max-width:100%;
+    max-height:100%;">
+</div>
+
+
+
+
+
+
 
 </div>
 
@@ -303,11 +319,23 @@
     width: 500px;
     height: auto;
     opacity: 50%;
+
   }
 
   #mydiv {
     position: absolute;
     z-index: 9;
+
+}
+
+#placement-dot {
+    position: absolute;
+    z-index: 9;
+    height: 25px;
+    width: 25px;
+    background-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
 
 }
 
@@ -325,6 +353,7 @@
 <script>
   dragElement(document.getElementById("mydiv"));
 
+  dragElement(document.getElementById("placement-dot"));
 function dragElement(elmnt) {
   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   if (document.getElementById(elmnt.id + "header")) {
@@ -367,3 +396,5 @@ function dragElement(elmnt) {
 }
 
 </script>
+
+
