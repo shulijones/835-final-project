@@ -3,9 +3,7 @@
 
 # import the necessary packages
 from imutils.video import VideoStream
-from flask import Response
-from flask import Flask
-from flask import render_template
+from flask import Response, Flask, render_template, request
 import threading
 import imutils
 import time
@@ -15,10 +13,15 @@ import numpy as np
 
 outputFrame = None
 colorOutputFrame = None
+
+# this section maybe can delete (here and wherever else they appear)
 lastSavedLocation = None
 lastSavedWall = None
 lastSavedPicture = None
+
 colorLocation = None
+cornerLocation = None
+hangingPoint = None
 
 # initialize a flask object
 app = Flask(__name__)
@@ -80,7 +83,7 @@ def color_track_frame():
         #determine the x and y coordinates of the center of the object
         x = int(moments['m10']/area)
         y = int(moments['m01']/area)
-        colorLocation = [x, y]
+        colorLocation = (x, y)
         overlay = cv2.circle(outputFrame, (x, y), 20, (255, 0, 0), 10)
     colorOutputFrame = overlay
 
@@ -101,14 +104,53 @@ def generate_color_tracking():
     yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
 			bytearray(encodedImage) + b'\r\n')
 
+@app.route('/frame_corner', methods=['POST'])
+def frame_corner():
+  global cornerLocation
+  loc = request.get_json()
+  cornerLocation = (loc['x'], loc['y'])
+  return "success"
+
+@app.route('/hanging_point', methods=['POST'])
+def hanging_point():
+  global hangingPoint
+  loc = request.get_json()
+  hangingPoint = (loc['x'], loc['y'])
+  return "success"
+
 @app.route("/direction/<orientation>")
 def direction(orientation):
 	# return which direction (L, R, U, D) the user needs to move in based
   # on their desired hanging location and current color-tracked location
   # returns P if user does not need to move
+
+  global colorLocation, cornerLocation, hangingPoint
+
+  if colorLocation is None or cornerLocation is None or hangingPoint is None:
+    return 'error'
+
+  # hangingPoint is a relative location, cornerLoc is an absolute one
+  # find absolute location of hangingPoint
+  hP = (cornerLocation[0] + hangingPoint[0], cornerLocation[1] + hangingPoint[1])
+
+  margin = 10 # margin of error - user does not have to get pixel exactly right
   if orientation == "horizontal":
-    return "L"
-  return "U"
+    if abs(hP[0] - colorLocation[0]) < margin:
+      return "P"
+    elif (hP[0] > colorLocation[0]):
+      return "R" 
+    elif (hP[0] < colorLocation[0]):
+      return "L"
+
+  if orientation == "vertical":
+    if abs(hP[1] - colorLocation[1]) < margin:
+      return "P"
+    elif (hP[1] > colorLocation[1]):
+      return "U" 
+    elif (hP[1] < colorLocation[1]):
+      return "D"
+  
+  return "error"
 
 @app.route("/video_feed")
 def video_feed():

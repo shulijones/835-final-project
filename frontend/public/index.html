@@ -30,6 +30,8 @@
   </div>
 
   <div id="instructions">
+    <h3> Instructions <h3>
+
     <p v-if="step == 0">
       <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
       Position your computer so that the webcam shows all of the wall and say
@@ -44,24 +46,25 @@
 
     <p v-if="step == 2">
       <b>Step 3: Show hanging point.</b> Tell us how your picture will hang!
-      On the image of your picture below, click where the nail will go and then 
-      click save. Based on that
-      information, and what you'll tell us in Step 4 about where the picture goes on
-      the wall, we'll calculate the nail's location.
+      On the image of your picture below, drag the circle to where the nail will go and then 
+      click save. Based on that information, and what you'll tell us in Step 4 about where
+      the picture goes on the wall, we'll calculate the nail's location.
     </p>
 
     <p v-if="step == 3">
       <b>Step 4: Show hanging location.</b> Show us where your picture will hang!
       Hold your picture up to the wall right where you want it to go. Then say "save location".
-      Then, come back here to match up your original picture to its location.
+      Then, come back here to match up your original picture to its location by dragging
+      and resizing it. Click the "done" button when you're done.
     </p>
 
     <p v-if="step == 4">
       <b>Step 5: Place nail.</b> It's finally time to place the nail!
       Head on over to the wall with your bright green bottle cap in hand. The computer
       will help you place the nail, first horizontally, then vertically. Say "horizontal"
-      to get started. You'll HEAR SOMETHING. When you HEAR SOMETHING ELSE, say "vertical"
-      to repeat the process in the vertical direction. When you're done, you're done!
+      to get started. The computer will tell you whether to move left or right, and let
+      you know when you're all mtached up. Then, say "vertical" to repeat the process
+      in the vertical direction. When you're done, you're done!
       Go ahead and hang your picture!
     </p>
   </div>
@@ -161,11 +164,18 @@
     },
     methods: {
       test() {
-        var x = window.scrollY + document.querySelector("#actual-poster").getBoundingClientRect().top // Y
+        var imgy = window.scrollY + 
+            document.querySelector("#actual-poster").getBoundingClientRect().top // Y
+        var imgx = window.scrollX + 
+            document.querySelector('#actual-poster').getBoundingClientRect().left // X
+        
+        var wally = window.scrollY + 
+            document.querySelector("#wall-img").getBoundingClientRect().top;
+        var wallx = window.scrollX + 
+            document.querySelector("#wall-img").getBoundingClientRect().left;
 
-        var y = window.scrollX + document.querySelector('#actual-poster').getBoundingClientRect().left // X
-        var y_r = window.scrollX + document.querySelector('#actual-poster').getBoundingClientRect().right// X
-        console.log(x,y,y_r)
+        axios.post('http://localhost:8080/api/frame_corner', 
+                  {'x': wallx - imgx, 'y': wally - imgy})
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -197,11 +207,17 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
-              if (result == "P") {
-                this.speak("You're all done!")
+              if (result == "error") {
+                console.log("the backend returned the word 'error'")
               }
-              this.direction = this.directions[result]
-              this.speak("Move " + this.direction)
+              else if (result == "P") {
+                this.speak("You're all done with this orientation!")
+              } else if (result in this.directions) {
+                this.direction = this.directions[result]
+                this.speak(this.direction)
+              } else {
+                console.log("the backend returned something unusual")
+              }
             })
             .catch((error) => {
               console.log(error)
