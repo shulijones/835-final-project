@@ -8,9 +8,9 @@
 
   <h3>Hang a picture perfectly in only five steps!</h3>
   <div id="steps">
-    <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
+    <!-- <button v-bind:class="{'active': step == 0}" v-on:click="changeStepMaybe(0)">
       Identify wall
-    </button> <div class="arrow-right"></div>
+    </button> <div class="arrow-right"></div> -->
   
     <button v-bind:class="{'active': step == 1}" v-on:click="changeStepMaybe(1)">
       Capture picture
@@ -25,6 +25,10 @@
     </button> <div class="arrow-right"></div>
     
     <button v-bind:class="{'active': step == 4}" v-on:click="changeStepMaybe(4)">
+      Arrange picture
+    </button> <div class="arrow-right"></div>
+    
+    <button v-bind:class="{'active': step == 5}" v-on:click="changeStepMaybe(5)">
       Place nail
     </button>
   </div>
@@ -32,33 +36,38 @@
   <div id="instructions">
     <h3> Instructions </h3>
 
-    <p v-if="step == 0">
+    <!-- <p v-if="step == 0">
       <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
       Position your computer so that the webcam shows all of the wall and say
       "save wall".
-    </p>
+    </p> -->
 
     <p v-if="step == 1">
-      <b>Step 2: Capture picture.</b> Show us what your picture looks like!
+      <b>Step 1: Capture picture.</b> Show us what your picture looks like!
       Hold the picture up close to the camera so that all of it is visible and say 
       "capture picture".
     </p>
 
     <p v-if="step == 2">
-      <b>Step 3: Show hanging point.</b> Tell us how your picture will hang!
+      <b>Step 2: Show hanging point.</b> Tell us how your picture will hang!
       On the image of your picture below, drag the circle to where the nail will go and then 
       click save. Based on that information, and what you'll tell us in Step 4 about where
       the picture goes on the wall, we'll calculate the nail's location.
     </p>
 
     <p v-if="step == 3">
-      <b>Step 4: Show hanging location.</b> Show us where your picture will hang!
+      <b>Step 3: Show hanging location.</b> Show us where your picture will hang!
       Hold your picture up to the wall right where you want it to go. Then say "save location".
-      Then, come back here to match up your original picture to its location by dragging
-      and resizing it. Click the "done" button when you're done.
+ 
     </p>
 
     <p v-if="step == 4">
+      <b>Step 4" Match up your original picture to its location by dragging
+      and resizing it. Click the "done" button when you're done.
+    </p>
+
+
+    <p v-if="step == 5">
       <b>Step 5: Place nail.</b> It's finally time to place the nail!
       Head on over to the wall with your bright green bottle cap in hand. The computer
       will help you place the nail, first horizontally, then vertically. Say "horizontal"
@@ -74,7 +83,7 @@
     <img :src=src_string>
   </div>
 
-  <div v-if="step == 4">
+  <div v-if="step == 5">
     You need to move: {{ direction }}
   </div>
 
@@ -99,17 +108,16 @@
     </div> -->
   </div>
 
-  <button v-if="step == 3" v-on:click="savePictureLocationOnWall()">
+  <button v-if="step == 4" v-on:click="savePictureLocationOnWall()">
     save picture location
   </button>
   
-<div id="wall-img"  v-bind:class="{'visible': step == 3} ">
-  WALL IMAGE
+<div id="wall-img"  v-bind:class="{'visible': step == 4} ">
   <img :src=hang_location style="max-width:100%;
     max-height:100%;">
 </div>
 
-<div id="mydiv"  v-bind:class="{'visible': step == 3}">
+<div id="mydiv"  v-bind:class="{'visible': step == 4}">
   <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
   <div id="mydivheader">
     Click here to move
@@ -123,7 +131,7 @@
 
 
 <button v-on:click="placeHangingPoint()" v-if="step == 2">
-  place hanging point
+  Save
 </button>
 
 <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
@@ -144,7 +152,7 @@
         wall: "",
         capture_picture: "",
         hang_location: "",
-        step: 0,
+        step: 1,
         lastStepChange: Date.now(),
         direction: "",
         directions: {"L": "left", "R": "right",
@@ -214,7 +222,7 @@
         speechSynthesis.speak(utt);
       },
       getDirection() {
-        if (this.step == 4) {
+        if (this.step == 5) {
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
@@ -239,7 +247,7 @@
     },
     computed: {
       src_string() {
-         return this.step == 4 ? 'http://localhost:8080/api/video_feed_color' 
+         return this.step == 5 ? 'http://localhost:8080/api/video_feed_color' 
                                 : 'http://localhost:8080/api/video_feed'
       },
     },
