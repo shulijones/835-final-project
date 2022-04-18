@@ -103,26 +103,21 @@
     save picture location
   </button>
   
-<div id="wall-img" v-if="step == 3">
+<div id="wall-img"  v-bind:class="{'visible': step == 3} ">
+  WALL IMAGE
   <img :src=hang_location style="max-width:100%;
     max-height:100%;">
 </div>
 
-<div id="mydiv" v-if="step == 3">
+<div id="mydiv"  v-bind:class="{'visible': step == 3}">
   <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
   <div id="mydivheader">
     Click here to move
   </div>
   <div id = "poster">
-<<<<<<< HEAD
-    <img id = "actual-poster" src="poster.jpg" style="max-width:100%;
-    max-height:100%;     object-fit: cover;
-    overflow: hidden;">
-=======
     <img id = "actual-poster" :src=capture_picture style="width:100%;
     object-fit: cover; overflow: hidden;
     height:100%;">
->>>>>>> 34e2d76494f449efa5fe2dcccdf1bbeeffc5b088
   </div>
 </div>
 
@@ -337,6 +332,15 @@
     background-color: lightgreen !important; 
   }
 
+  .visible{
+    visibility: visible !important;
+}
+
+  }
+
+  .not-visible{
+    visibility: hidden !important;
+  }
 
   #poster{
       /* background-image: url("poster.jpg");
@@ -352,6 +356,7 @@
     width: 500px;
     height: auto;
     opacity: 50%;
+    visibility:hidden;
 
   }
   #poster-img{
@@ -363,6 +368,7 @@
   #mydiv {
     position: absolute;
     z-index: 9;
+    visibility: hidden;
 
 }
 
