@@ -137,17 +137,17 @@ def direction(orientation):
   if orientation == "horizontal":
     if abs(hP[0] - colorLocation[0]) < margin:
       return "P"
-    elif (hP[0] > colorLocation[0]):
-      return "R" 
     elif (hP[0] < colorLocation[0]):
+      return "R" 
+    elif (hP[0] > colorLocation[0]):
       return "L"
 
   if orientation == "vertical":
     if abs(hP[1] - colorLocation[1]) < margin:
       return "P"
-    elif (hP[1] > colorLocation[1]):
-      return "U" 
     elif (hP[1] < colorLocation[1]):
+      return "U" 
+    elif (hP[1] > colorLocation[1]):
       return "D"
   
   return "error"

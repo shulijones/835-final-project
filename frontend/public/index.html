@@ -30,7 +30,7 @@
   </div>
 
   <div id="instructions">
-    <h3> Instructions <h3>
+    <h3> Instructions </h3>
 
     <p v-if="step == 0">
       <b>Step 1: Identify wall.</b> We need to know where you'll be hanging the picture!
@@ -81,42 +81,42 @@
 
 
   <div id="image-display">
-  </p> Here are the images we've saved for you so far. <p>
-    <div v-if="wall">
+  </p> Here's what we have as your picture. (If it's not right, feel
+      free to try again.) <p>
+    <!-- <div v-if="wall">
       Your wall: <br>
       <img :src=wall>
-    </div>
+    </div> -->
     
     <div v-if="capture_picture">
       Your picture: <br>
       <img :src=capture_picture>
     </div>
 
-    <div v-if="hang_location">
+    <!-- <div v-if="hang_location">
       Your hanging location: <br>
       <img :src=hang_location>
-    </div>
+    </div> -->
   </div>
-  
-  
 
-  <button  v-on:click="savePictureLocationOnWall()">
+  <button v-if="step == 3" v-on:click="savePictureLocationOnWall()">
     save picture location
   </button>
   
-<div id = "wall-img">
+<div id="wall-img" v-if="step == 3">
   <img :src=hang_location style="max-width:100%;
     max-height:100%;">
 </div>
 
-<div id="mydiv">
+<div id="mydiv" v-if="step == 3">
   <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
   <div id="mydivheader">
     Click here to move
   </div>
   <div id = "poster">
-    <img id = "actual-poster" :src=capture_picture style="max-width:100%;
-    max-height:100%;">
+    <img id = "actual-poster" :src=capture_picture style="width:100%;
+    object-fit: cover; overflow: hidden;
+    height:100%;">
   </div>
 </div>
 
@@ -124,6 +124,7 @@
 <button v-on:click="placeHangingPoint()" v-if="step == 2">
   place hanging point
 </button>
+
 <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
 <div id = "poster-img"  v-if="step == 2">
@@ -131,15 +132,7 @@
     max-height:100%;">
 </div>
 
-
-
-
-
-
-
 </div>
-
-
 
 
 <script>
@@ -170,23 +163,29 @@
         var wallx = window.scrollX + 
             document.querySelector("#wall-img").getBoundingClientRect().left;
 
+        console.log(imgy, imgx, wally, wallx)
+        console.log('frame corner', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/frame_corner', 
-                  {'x': wallx - imgx, 'y': wally - imgy})
+                  {'x': imgx - wallx, 'y': imgy - wally})
       },
 
       placeHangingPoint() {
         var imgy = window.scrollY + 
-            document.querySelector("#placement-dot").getBoundingClientRect().top // Y
+            (document.querySelector("#placement-dot").getBoundingClientRect().top
+            +document.querySelector("#placement-dot").getBoundingClientRect().bottom)/2 // Y
         var imgx = window.scrollX + 
-            document.querySelector('#placement-dot').getBoundingClientRect().left // X
+            (document.querySelector('#placement-dot').getBoundingClientRect().left
+            +document.querySelector("#placement-dot").getBoundingClientRect().right)/2 // X
         
         var wally = window.scrollY + 
             document.querySelector("#poster-img").getBoundingClientRect().top;
         var wallx = window.scrollX + 
             document.querySelector("#poster-img").getBoundingClientRect().left;
 
+        console.log(imgy, imgx, wally, wallx)
+        console.log('hanging point', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/hanging_point', 
-                  {'x': wallx - imgx, 'y': wally - imgy})
+                  {'x': imgx - wallx, 'y': imgy - wally})
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -218,6 +217,7 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
+              console.log('got direction response and it was: ', result)
               if (result == "error") {
                 console.log("the backend returned the word 'error'")
               }
@@ -245,7 +245,7 @@
     mounted() {
       // Start the function which will continously do nail positioning when in step 4
       // every 5 seconds right now
-      setInterval(this.getDirection, 5000)
+      setInterval(this.getDirection, 2000)
 
       // Set up Speech Recognition
       var recognition = new webkitSpeechRecognition();
