@@ -130,7 +130,7 @@
 
 <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
-<div id = "wall-img"  v-if="step == 2">
+<div id = "poster-img"  v-if="step == 2">
   <img src="poster.jpg" style="max-width:100%;
     max-height:100%;">
 </div>
@@ -175,6 +175,21 @@
             document.querySelector("#wall-img").getBoundingClientRect().left;
 
         axios.post('http://localhost:8080/api/frame_corner', 
+                  {'x': wallx - imgx, 'y': wally - imgy})
+      },
+
+      placeHangingPoint() {
+        var imgy = window.scrollY + 
+            document.querySelector("#placement-dot").getBoundingClientRect().top // Y
+        var imgx = window.scrollX + 
+            document.querySelector('#placement-dot').getBoundingClientRect().left // X
+        
+        var wally = window.scrollY + 
+            document.querySelector("#poster-img").getBoundingClientRect().top;
+        var wallx = window.scrollX + 
+            document.querySelector("#poster-img").getBoundingClientRect().left;
+
+        axios.post('http://localhost:8080/api/hanging_point', 
                   {'x': wallx - imgx, 'y': wally - imgy})
       },
       changeStepMaybe(newStep) {
@@ -336,6 +351,11 @@
     height: auto;
     opacity: 50%;
 
+  }
+  #poster-img{
+    width: 500px;
+    height: auto;
+    opacity: 50%;
   }
 
   #mydiv {
