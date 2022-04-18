@@ -78,9 +78,7 @@
     You need to move: {{ direction }}
   </div>
 
-  <button v-on:click="test()">
-    Test button
-  </button>
+
 
   <div id="image-display">
   </p> Here are the images we've saved for you so far. <p>
@@ -101,21 +99,15 @@
   </div>
   
   
-  <p>To take a picture of your current video
-    and save the picture frame you're holding up, say "take a picture".
-    To switch to color tracking mode, say "color". To switch to default mode
-    (no color tracking), say "default". 
-  </p>
-  <button  v-on:click="test()">
-    Place nail
+
+  <button  v-on:click="savePictureLocationOnWall()">
+    save picture location
   </button>
   
 <div id = "wall-img">
   <img src="held_to_wall.jpg" style="max-width:100%;
     max-height:100%;">
 </div>
-
-
 
 <div id="mydiv">
   <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
@@ -128,6 +120,10 @@
   </div>
 </div>
 
+
+<button v-on:click="placeHangingPoint()" v-if="step == 2">
+  place hanging point
+</button>
 <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
 <div id = "poster-img"  v-if="step == 2">
@@ -163,7 +159,7 @@
       }
     },
     methods: {
-      test() {
+      savePictureLocationOnWall() {
         var imgy = window.scrollY + 
             document.querySelector("#actual-poster").getBoundingClientRect().top // Y
         var imgx = window.scrollX + 
