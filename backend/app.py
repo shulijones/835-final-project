@@ -12,6 +12,7 @@ import base64
 import numpy as np
 
 outputFrame = None
+outputFrame2 = None
 colorOutputFrame = None
 
 # this section maybe can delete (here and wherever else they appear)
@@ -35,15 +36,17 @@ def index():
 	return render_template("index.html")
 
 def get_video(frameCount):
-  global vs, outputFrame, colorOutputFrame # vs = video stream
+  global vs, outputFrame, colorOutputFrame, outputFrame2 # vs = video stream
   # loop over frames from the video stream
   while True:
     # read the next frame from the video stream and resize it
     frame = vs.read()
+    #outputFrame2 = cv2.flip(frame, flipCode=1)
+    outputFrame2 = frame.copy()
     frame = imutils.resize(frame, width=400)
-    flipped_frame = cv2.flip(frame, flipCode=1)
-    outputFrame = flipped_frame.copy()
-
+    #flipped_frame = cv2.flip(frame, flipCode=1)
+    #outputFrame = flipped_frame.copy()
+    outputFrame = frame.copy()
 
 def generate():
   global outputFrame
@@ -62,9 +65,10 @@ def generate():
 			bytearray(encodedImage) + b'\r\n')
 
 def color_track_frame():
-    global colorOutputFrame, colorLocation
-    img = cv2.GaussianBlur(outputFrame,(11,11),0)
-    overlay = outputFrame
+    global colorOutputFrame, colorLocation, outputFrame2
+    img = cv2.GaussianBlur(outputFrame2,(11,11),0)
+   # img = cv2.flip(img, flipCode=1)
+    overlay = outputFrame2
     thresholded_img = img
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     thresholded_img = cv2.inRange(hsv_img, (40,55,55), (80,255,255))
@@ -84,7 +88,7 @@ def color_track_frame():
         x = int(moments['m10']/area)
         y = int(moments['m01']/area)
         colorLocation = (x, y)
-        overlay = cv2.circle(outputFrame, (x, y), 20, (255, 0, 0), 10)
+        overlay = cv2.circle(outputFrame2, (x, y), 20, (255, 0, 0), 10)
     colorOutputFrame = overlay
 
 def generate_color_tracking():
@@ -164,11 +168,11 @@ def video_feed():
 @app.route("/get_video_frame_location")
 def get_video_frame_location():
   # return a single video frame (as jpg)
-  global outputFrame, lastSavedLocation
-  if outputFrame is not None:
+  global outputFrame2, lastSavedLocation
+  if outputFrame2 is not None:
     # encode the image as a jpg and check the encoding was successful
-    lastSavedLocation = outputFrame
-    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+    lastSavedLocation = outputFrame2
+    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame2)
     if flag:
 		# yield the output frame in base 64 format
       im_bytes = encodedImage.tobytes()
@@ -176,28 +180,28 @@ def get_video_frame_location():
       return Response(im_b64)
   return "Request error"
 
-@app.route("/get_video_frame_wall")
-def get_video_frame_wall():
-  # return a single video frame (as jpg)
-  global outputFrame, lastSavedWall
-  if outputFrame is not None:
-    lastSavedWall = outputFrame
-    # encode the image as a jpg and check the encoding was successful
-    (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
-    if flag:
-		# yield the output frame in base 64 format
-      im_bytes = encodedImage.tobytes()
-      im_b64 = base64.b64encode(im_bytes)
-      return Response(im_b64)
-  return "Request error"
+# @app.route("/get_video_frame_wall")
+# def get_video_frame_wall():
+#   # return a single video frame (as jpg)
+#   global outputFrame, lastSavedWall
+#   if outputFrame is not None:
+#     lastSavedWall = outputFrame
+#     # encode the image as a jpg and check the encoding was successful
+#     (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
+#     if flag:
+# 		# yield the output frame in base 64 format
+#       im_bytes = encodedImage.tobytes()
+#       im_b64 = base64.b64encode(im_bytes)
+#       return Response(im_b64)
+#   return "Request error"
   
 @app.route("/get_picture")
 def get_picture():
   # return a single video frame (as jpg), cropped to just the picture
-  global outputFrame, lastSavedPicture
-  if outputFrame is not None:
+  global outputFrame2, lastSavedPicture
+  if outputFrame2 is not None:
     # crop the image to just show the picture (which we find via contours)
-    gray = cv2.cvtColor(outputFrame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(outputFrame2, cv2.COLOR_BGR2GRAY)
 
     ret,thresh_img = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
     thresh_img = cv2.dilate(thresh_img, np.ones((45, 45), np.uint8)) 
@@ -207,7 +211,7 @@ def get_picture():
     contours = sorted(contours, key=cv2.contourArea)
 
     x,y,w,h = cv2.boundingRect(contours[-2])
-    cropped_image = outputFrame[y:y+h,x :x+w]
+    cropped_image = outputFrame2[y:y+h,x :x+w]
     lastSavedPicture = cropped_image
 
     # encode the image as a jpg and check the encoding was successful

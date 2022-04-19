@@ -86,15 +86,16 @@
   </div>
 
   <div id="image-display">
-    <p v-if="step == 1"> 
-      Here's what we have as your picture. If it's not right, feel
-      free to try again. If nothing appears, try making sure all the picture's
-      edges are visible and try again.
-    </p>
-    
-    <div v-if="capture_picture">
-      Your picture: <br><br>
-      <img :src=capture_picture style="width:250px">
+    <div v-if="step == 1">
+      <p v-if="step == 1"> 
+        Here's what we have as your picture. If it's not right, feel
+        free to try again. If nothing appears, try making sure all the picture's
+        edges are visible and try again.
+      </p>
+      
+      <div v-if="capture_picture && step == 1">
+        <img :src=capture_picture style="width:250px">
+      </div>
     </div>
 
     <div v-if="hang_location && step == 3">
@@ -108,8 +109,7 @@
   </button>
   
 <div id="wall-img"  v-bind:class="{'visible': step == 4} ">
-  <img :src=hang_location style="max-width:100%;
-    max-height:100%;">
+  <img :src=hang_location>
 </div>
 
 
@@ -187,6 +187,20 @@
             document.querySelector("#poster-img").getBoundingClientRect().top;
         var wallx = window.scrollX + 
             document.querySelector("#poster-img").getBoundingClientRect().left;
+
+        // TODO: hanging point is currently absolute which doesn't work
+        // since image is resized from original, need to make it percentage-based
+        // and then figure out how to integrate that on backend
+        var wall_height = document.querySelector("#poster-img").getBoundingClientRect().bottom
+            - document.querySelector("#poster-img").getBoundingClientRect().top;
+        var wall_width = document.querySelector("#poster-img").getBoundingClientRect().right
+            - document.querySelector("#poster-img").getBoundingClientRect().left;
+        
+        console.log("picture sizes (h/w)", wall_height, wall_width)
+        var dx = imgx - wallx;
+        var dy = imgy - wally;
+        var xp = dx / wall_width;
+        var yp = dy / wall_height;
 
         console.log(imgy, imgx, wally, wallx)
         console.log('hanging point', {'x': wallx - imgx, 'y': wally - imgy})
