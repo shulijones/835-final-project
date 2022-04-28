@@ -40,49 +40,45 @@
   <div id="app-body">
   <div id="instructions">
     <p v-if="step == 0">
-      Each step will show you its instructions again, but in case you want to see them
-      all before you start, here they are.
+      This is the instructions for all five steps; each step also shows its own instructions. 
+      You can move between steps by clicking on their names or by saying "next step" out loud.
     </p>
 
     <p v-if="step == 1 || step == 0">
-      <b>Step 1: Capture picture.</b> Show us what your picture looks like!
-      Hold the picture up close to the camera so that all of it is visible and say 
-      "capture picture". You can retake it as many times as you want; when you're
-      happy with it you can move to the next step with your mouse or by saying "next step".
-      When you're taking the picture, be sure to hold still for three seconds after speaking.
+      <b>Step 1: Capture picture.</b>
+      Hold the picture so that it fills as much of the screen as possible and say 
+      "capture picture". Hold the picture still for three seconds.
+      You can repeat this step until you get a picture you're happy with.
     </p>
 
     <p v-if="step == 2 || step == 0">
-      <b>Step 2: Show hanging point.</b> Tell us how your picture will hang!
-      On the image of your picture below, drag the circle to where the nail will go and then 
+      <b>Step 2: Hanging point.</b>
+      On the image of your picture below, drag the circle to where the nail will go and 
       click save. Based on that information, and what you'll tell us in Step 4 about where
       the picture goes on the wall, we'll calculate the nail's location.
     </p>
 
     <p v-if="step == 3 || step == 0">
-      <b>Step 3: Show hanging location.</b> Show us where your picture will hang!
-
-      Hold your picture up to the wall right where you want it to go. Then say "save location".
- 
-      Once you have saved the location, make sure to not move your computer for the rest of this proces.
+      <b>Step 3: Hanging location.</b> 
+      Hold your picture up to the wall where you want it to go. Then say "save location".
+      Once you have saved the location, don't move your computer for the rest 
+      of the process.
     </p>
 
     <p v-if="step == 4 || step == 0">
-      <b>Step 4: Arrange picture. </b> Match up your picture to its 
-      location by dragging and resizing it. This is also your chance to adjust the location 
-      a little bit if you weren't fully happy with where it went originally: 
+      <b>Step 4: Place picture. </b> Match up your picture to its 
+      location by dragging and resizing it, then click "save". You can adjust its location
+      from the original if you prefer;
       the computer will place the nail based on the location where you drag the picture,
       not where it is in the original photo.
-      Click the "save" button when you're done.
     </p>
 
 
     <p v-if="step == 5 || step == 0">
-      <b>Step 5: Place nail.</b> It's finally time to place the nail!
-      Head on over to the wall with your bright green bottle cap in hand. The computer
-      will help you place the nail, first horizontally, then vertically. First,
+      <b>Step 5: Place nail.</b> 
+      Stand by the wall with your color marker (green bottle cap). First,
       the computer will tell you whether to move left or right, and let
-      you know when you're all mtached up. Then, say "vertical" to repeat the process
+      you know when you're in te right spot. Then, say "vertical" to repeat the process
       in the vertical direction. If you want, you can say "horizontal" to do a quick check
       on your horizontal alignment. When you're all set, go ahead and hang your picture!
     </p>
@@ -90,7 +86,7 @@
 
   <div id="video-feed" v-if="step != 2 && step != 0">
     <p>Your video:</p>
-    <img :src=src_string>
+    <img :src=src_string style=" transform: scaleX(-1)">
   </div>
 
   <div v-if="step == 5">
@@ -180,8 +176,6 @@
         var wallx = window.scrollX + 
             document.querySelector("#wall-img").getBoundingClientRect().left;
 
-        console.log(imgy, imgx, wally, wallx)
-        console.log('frame corner', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/frame_corner', 
                   {'x': imgx - wallx, 'y': imgy - wally})
         alert("Your picture location has been saved. You can move to the next step.")  
@@ -208,14 +202,11 @@
         var wall_width = document.querySelector("#poster-img").getBoundingClientRect().right
             - document.querySelector("#poster-img").getBoundingClientRect().left;
         
-        console.log("picture sizes (h/w)", wall_height, wall_width)
         var dx = imgx - wallx;
         var dy = imgy - wally;
         var xp = dx / wall_width;
         var yp = dy / wall_height;
 
-        console.log(imgy, imgx, wally, wallx)
-        console.log('hanging point', {'x': wallx - imgx, 'y': wally - imgy})
         axios.post('http://localhost:8080/api/hanging_point', 
                   {'x': imgx - wallx, 'y': imgy - wally})
         alert("Your hanging point has been saved. You can move to the next step.")
@@ -232,7 +223,6 @@
           // raise alert to make sure they want to go back and lose progress
           let conf = confirm("This step is before your current step." +
                   " If you go backwards, your intermediate progress will be lost.");
-          console.log(conf)
           if (conf) {
             this.step = newStep;
           }
@@ -243,6 +233,7 @@
       },
       speak(utterance) { 
         let utt = new SpeechSynthesisUtterance(utterance);
+        // utt.voice = window.speechSynthesis.getVoices()[3];
         speechSynthesis.speak(utt);
       },
       getDirection() {
@@ -250,7 +241,6 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
-              console.log('got direction response and it was: ', result)
               if (result == "error") {
                 console.log("the backend returned the word 'error'")
               }
@@ -265,7 +255,7 @@
               }
             })
             .catch((error) => {
-              console.log(error)
+              console.log("error while getting direction: ", error)
             });
         }
       }
@@ -301,14 +291,12 @@
           this.speak("Advancing to step " + this.step);
 
         } else if (this.speech.includes("capture picture")) {
-          console.log("Got CP speech")
           axios.get('http://localhost:8080/api/get_picture')
             .then((response) => {
-              console.log("got CP response")
               this.capture_picture = "data:image/jpg;base64," + response.data
             })
             .catch((error) => {
-              console.log(error)
+              console.log("error while getting picture: ", error)
             });
         } else if (this.speech.includes("save location")) {
           axios.get('http://localhost:8080/api/get_video_frame_location')
@@ -317,7 +305,7 @@
               this.speak("Location saved")
             })
             .catch((error) => {
-              console.log(error)
+              console.log("error while getting video frame: ", error)
             });
         } else if (this.speech.includes("vertical")) {
           this.orientation = 'vertical'
@@ -339,7 +327,7 @@
 
 <style>
   #app {
-    margin: 10px 30px 30px 30px;
+    margin: 30px 50px 50px 50px;
   }
 
   #steps {
@@ -368,9 +356,9 @@
       margin: 2px;
   }
 
-  /* #instructions {
-    width50%;
-  } */
+  #instructions {
+    font-size: 125%;
+  }
 
   #app-body {
     width: 70%;
