@@ -76,11 +76,10 @@
 
     <p v-if="step == 5 || step == 0">
       <b>Step 5: Place nail.</b> 
-      Stand by the wall with your color marker (green bottle cap). First,
-      the computer will tell you whether to move left or right, and let
-      you know when you're in te right spot. Then, say "vertical" to repeat the process
-      in the vertical direction. If you want, you can say "horizontal" to do a quick check
-      on your horizontal alignment. When you're all set, go ahead and hang your picture!
+      Stand by the wall with your color marker (green bottle cap). You can say 'horizontal'
+      or 'vertical' and the computer will tell you whether to move left/right or up/down. 
+      It will also let you know when you're correctly oriented in each direction. Once both
+      directions are done, your picture is ready to hang up!
     </p>
   </div>
 
@@ -160,7 +159,7 @@
         direction: "",
         directions: {"L": "left", "R": "right",
                       "U": "up", "D": "down"},
-        orientation: "horizontal",
+        orientation: "",
         orientationDone: false,
       }
     },
@@ -237,7 +236,8 @@
         speechSynthesis.speak(utt);
       },
       getDirection() {
-        if (this.step == 5 && !this.orientationDone) {
+        if (this.step == 5 && !this.orientationDone && 
+                (this.orientation == 'vertical' || this.orientation == 'horizontal')) {
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
@@ -246,7 +246,11 @@
               }
               else if (result == "P") {
                 this.orientationDone = true;
-                this.speak("You're all done with this orientation!")
+                this.speak("You're correctly aligned! You can now hang your picture.")
+              } else if (result == "S") {
+                this.orientationDone = true;
+                this.speak("You're correctly aligned in the " + this.orientation +
+                    " direction only. Switch to the other direction to finish.")
               } else if (result in this.directions) {
                 this.direction = this.directions[result]
                 this.speak(this.direction)

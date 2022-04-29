@@ -126,7 +126,7 @@ def hanging_point():
 def direction(orientation):
 	# return which direction (L, R, U, D) the user needs to move in based
   # on their desired hanging location and current color-tracked location
-  # returns P if user does not need to move
+  # returns P if user does not need to move, S if they need to switch orientations
 
   global colorLocation, cornerLocation, hangingPoint
 
@@ -139,21 +139,29 @@ def direction(orientation):
 
   margin = 10 # margin of error - user does not have to get pixel exactly right
   if orientation == "horizontal":
-    if abs(hP[0] - colorLocation[0]) < margin:
-      return "P"
-    elif (hP[0] > colorLocation[0]):
+    if (hP[0] > colorLocation[0]):
       return "R" 
     elif (hP[0] < colorLocation[0]):
       return "L"
 
   if orientation == "vertical":
-    if abs(hP[1] - colorLocation[1]) < margin:
-      return "P"
-    elif (hP[1] < colorLocation[1]):
+    if (hP[1] < colorLocation[1]):
       return "U" 
     elif (hP[1] > colorLocation[1]):
       return "D"
+
+  # if we get here, we know our direction of choice is aligned;
+  # check if the other direction is aligned also
+  if orientation == "vertical":
+    if abs(hP[0] - colorLocation[0]) < margin:
+      return "P"
+    return "S"
   
+  if orientation == "horizontal":
+    if abs(hP[1] - colorLocation[1]) < margin:
+      return "P"
+    return "S"
+
   return "error"
 
 @app.route("/video_feed")
@@ -179,21 +187,6 @@ def get_video_frame_location():
       im_b64 = base64.b64encode(im_bytes)
       return Response(im_b64)
   return "Request error"
-
-# @app.route("/get_video_frame_wall")
-# def get_video_frame_wall():
-#   # return a single video frame (as jpg)
-#   global outputFrame, lastSavedWall
-#   if outputFrame is not None:
-#     lastSavedWall = outputFrame
-#     # encode the image as a jpg and check the encoding was successful
-#     (flag, encodedImage) = cv2.imencode(".jpg", outputFrame)
-#     if flag:
-# 		# yield the output frame in base 64 format
-#       im_bytes = encodedImage.tobytes()
-#       im_b64 = base64.b64encode(im_bytes)
-#       return Response(im_b64)
-#   return "Request error"
   
 @app.route("/get_picture")
 def get_picture():
