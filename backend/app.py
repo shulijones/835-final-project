@@ -204,7 +204,7 @@ def get_picture():
     contours = sorted(contours, key=cv2.contourArea)
 
     x,y,w,h = cv2.boundingRect(contours[-2])
-    cropped_image = outputFrame2[y:y+h,x :x+w]
+    cropped_image = outputFrame2[y-15:y+h+15,x-15:x+w+15]
     lastSavedPicture = cropped_image
 
     # encode the image as a jpg and check the encoding was successful

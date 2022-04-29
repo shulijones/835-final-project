@@ -1,5 +1,6 @@
 <script src="https://unpkg.com/vue@3"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="confetti.js"></script>
 <!-- Bootstrap (CSS package) -->
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous"> -->
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous"> -->
@@ -223,6 +224,11 @@
           let conf = confirm("This step is before your current step." +
                   " If you go backwards, your intermediate progress will be lost.");
           if (conf) {
+            if (this.step == 5) {
+              // if the user is going backward from step 5,
+              // stop any confetti they might have had
+              stopConfetti();
+            }
             this.step = newStep;
           }
         } else {
@@ -246,6 +252,7 @@
               }
               else if (result == "P") {
                 this.orientationDone = true;
+                startConfetti();
                 this.speak("You're correctly aligned! You can now hang your picture.")
               } else if (result == "S") {
                 this.orientationDone = true;
@@ -278,7 +285,7 @@
       // Set up Speech Recognition
       var recognition = new webkitSpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.interimResults = false;
       recognition.onresult = (event) => { 
         // note: arrow function syntax is crucial so that 'this' keeps larger scope
         this.speech = event.results[event.results.length-1][0].transcript.toLowerCase();
