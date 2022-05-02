@@ -11,6 +11,7 @@
   <div id="header">
     <h1>Picture Hanging Helper</h1>
     <h3>Hang a picture in only five steps!</h3>
+    <button v-on:click="test()">Test</button>
     <div id="steps">
       <button type="button" class="btn" v-bind:class="{'btn-success': step == 0, 'btn-outline-primary': step != 0}" v-on:click="changeStepMaybe(0)">
         0. Read instructions
@@ -165,6 +166,15 @@
       }
     },
     methods: {
+      test() {
+        axios.get('http://localhost:8080/api/get_picture')
+            .then((response) => {
+              this.capture_picture = "data:image/jpg;base64," + response.data
+            })
+            .catch((error) => {
+              console.log("error while getting picture: ", error)
+            });
+      },
       savePictureLocationOnWall() {
         var imgy = window.scrollY + 
             document.querySelector("#actual-poster").getBoundingClientRect().top // Y
