@@ -10,6 +10,7 @@ import time
 import cv2
 import base64
 import numpy as np
+import matplotlib.colors
 
 outputFrame = None
 outputFrame2 = None
@@ -23,6 +24,8 @@ lastSavedPicture = None
 colorLocation = None
 cornerLocation = None
 hangingPoint = None
+tracking_color_min = [100.0, 55, 55]
+tracking_color_max = [140.0, 255, 255]
 
 # initialize a flask object
 app = Flask(__name__)
@@ -71,7 +74,8 @@ def color_track_frame():
     overlay = outputFrame2
     thresholded_img = img
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    thresholded_img = cv2.inRange(hsv_img, (40,55,55), (80,255,255))
+    # thresholded_img = cv2.inRange(hsv_img, (40,55,55), (80,255,255))
+    thresholded_img = cv2.inRange(hsv_img, tuple(tracking_color_min), tuple(tracking_color_max))
     thresholded_img = cv2.erode(thresholded_img, None, iterations=2)
     thresholded_img = cv2.dilate(thresholded_img, None, iterations=2)
     contours, hierarchy = cv2.findContours(thresholded_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -113,6 +117,19 @@ def frame_corner():
   global cornerLocation
   loc = request.get_json()
   cornerLocation = (loc['x'], loc['y'])
+  return "success"
+
+@app.route('/select_tracking_color', methods=['POST'])
+def select_tracking_color():
+  global tracking_color_min
+  global tracking_color_max
+  color_dict = request.get_json()
+  tracking_color_code = color_dict['color']
+  rgb = matplotlib.colors.to_rgb(tracking_color_code)
+  hsv = matplotlib.colors.rgb_to_hsv(rgb)
+  tracking_color_min = [hsv[0]*180 - 20, 55, 55]  
+  tracking_color_max = [hsv[0]*180 + 20, 255, 255]  
+  print(tracking_color_min, tracking_color_max)
   return "success"
 
 @app.route('/hanging_point', methods=['POST'])
@@ -226,8 +243,8 @@ def get_picture():
 
     # REGULAR
     x,y,w,h = cv2.boundingRect(contours[-2])
-    # cropped_image = outputFrame2[y-60:y+h+60,x-60:x+w+60]
-    cropped_image = outputFrame2[y:y+h,x:x+w]
+    cropped_image = outputFrame2[y-60:y+h+60,x-60:x+w+60]
+    # cropped_image = outputFrame2[y:y+h,x:x+w]
     lastSavedPicture = cropped_image
 
     # encode the image as a jpg and check the encoding was successful

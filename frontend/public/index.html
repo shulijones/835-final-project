@@ -11,7 +11,6 @@
   <div id="header">
     <h1>Picture Hanging Helper</h1>
     <h3>Hang a picture in only five steps!</h3>
-    <button v-on:click="test()">Test</button>
     <div id="steps">
       <button type="button" class="btn" v-bind:class="{'btn-success': step == 0, 'btn-outline-primary': step != 0}" v-on:click="changeStepMaybe(0)">
         0. Read instructions
@@ -78,11 +77,22 @@
 
     <p v-if="step == 5 || step == 0">
       <b>Step 5: Place nail.</b> 
-      Stand by the wall with your color marker (green bottle cap). You can say 'horizontal'
+      Stand by the wall with your colored marking object (ex: a bottle cap). You can say 'horizontal'
       or 'vertical' and the computer will tell you whether to move left/right or up/down. 
       It will also let you know when you're correctly oriented in each direction. Once both
       directions are done, your picture is ready to hang up!
     </p>
+
+    <div v-if="step == 5" >
+      Select the color of your marking object:
+      <br>
+      <input type="color" id="colorpicker" value="#0000ff">
+      <br>
+      <button type="button" class="btn btn-secondary" v-on:click="sendColorCode()">
+        Save Color Selection
+      </button>
+    </div>
+    
   </div>
 
   <div id="video-feed" v-if="step != 2 && step != 0">
@@ -220,6 +230,12 @@
         axios.post('http://localhost:8080/api/hanging_point', 
                   {'x': imgx - wallx, 'y': imgy - wally})
         alert("Your hanging point has been saved. You can move to the next step.")
+      },
+      sendColorCode(){
+        color_code = document.getElementById("colorpicker").value;
+        axios.post('http://localhost:8080/api/select_tracking_color', 
+                  {'color': color_code})
+        alert("Your color selection has been updated!")  
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -392,6 +408,10 @@
 
   .not-visible{
     visibility: hidden !important;
+  }
+
+  .active{
+    background-color: green !important;
   }
 
   #poster{
