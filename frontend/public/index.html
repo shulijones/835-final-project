@@ -99,6 +99,17 @@
     Save picture location
   </button>
 
+  <div v-if="capture_picture && step == 1">
+    <br>
+    <p> 
+      Here's what we have as your picture. If it's not right, feel
+      free to try again. If nothing appears, try making sure all the picture's
+      edges are visible and try again.
+    </p>
+    
+    <img :src=capture_picture style="width:250px">
+  </div>
+
   <div id="video-feed" v-if="step != 2 && step != 0 && step != 4">
     <p>Your video:</p>
     <img :src=src_string style=" transform: scaleX(-1)">
@@ -108,18 +119,6 @@
     You need to move: {{ direction }}
   </div>
 
-  <div v-if="step == 1">
-    <br>
-    <p> 
-      Here's what we have as your picture. If it's not right, feel
-      free to try again. If nothing appears, try making sure all the picture's
-      edges are visible and try again.
-    </p>
-    
-    <div v-if="capture_picture && step == 1">
-      <img :src=capture_picture style="width:250px">
-    </div>
-  </div>
 
   <div v-if="hang_location && step == 3">
     Your hanging location: <br>
