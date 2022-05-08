@@ -156,47 +156,30 @@ def direction(orientation):
 
   margin = 10 # margin of error - user does not have to get pixel exactly right
   if orientation == "horizontal":
-    if abs(hP[0] - colorLocation[0]) < margin:
-      return "S"
-    elif (hP[0] > colorLocation[0]):
+    if (hP[0] > colorLocation[0] + margin) :
       return "R" 
-    elif (hP[0] < colorLocation[0]):
+    elif (hP[0] < colorLocation[0] - margin):
       return "L"
 
   if orientation == "vertical":
-    if abs(hP[1] - colorLocation[1]) < margin:
-      return "P"
-    elif (hP[1] < colorLocation[1]):
+    if (hP[1] < colorLocation[1] - margin):
       return "U" 
-    elif (hP[1] > colorLocation[1]):
+    elif (hP[1] > colorLocation[1] + margin):
       return "D"
 
-  return "error"
-  # if orientation == "horizontal":
-  #   if (hP[0] > colorLocation[0] + margin) :
-  #     return "R" 
-  #   elif (hP[0] < colorLocation[0] - margin):
-  #     return "L"
-
-  # if orientation == "vertical":
-  #   if (hP[1] < colorLocation[1] - margin):
-  #     return "U" 
-  #   elif (hP[1] > colorLocation[1] + margin):
-  #     return "D"
-
-  # # if we get here, we know our direction of choice is aligned;
-  # # check if the other direction is aligned also
-  # if orientation == "vertical":
-  #   if abs(hP[0] - colorLocation[0]) < margin:
-  #     return "P"
-  #   return "S"
+  # if we get here, we know our direction of choice is aligned;
+  # check if the other direction is aligned also
+  if orientation == "vertical":
+    if abs(hP[0] - colorLocation[0]) < margin:
+      return "P"
+    return "S"
   
-  # if orientation == "horizontal":
-  #   if abs(hP[1] - colorLocation[1]) < margin:
-  #     return "P"
-  #   return "S"
+  if orientation == "horizontal":
+    if abs(hP[1] - colorLocation[1]) < margin:
+      return "P"
+    return "S"
 
-  # return "error"
+  return "error"
 
 @app.route("/video_feed")
 def video_feed():

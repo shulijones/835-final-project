@@ -315,11 +315,14 @@
         // multiple times)
         if (this.speech.includes("next step") && 
               this.lastStepChange < Date.now() - 100) { 
-
-          this.step += 1;
-          this.lastStepChange = Date.now();
-          recognition.stop();
-          this.speak("Advancing to step " + this.step);
+          if (this.step < 5) {
+            this.step += 1;
+            this.lastStepChange = Date.now();
+            recognition.stop();
+            this.speak("Advancing to step " + this.step);
+          } else {
+            this.speak("You are on the last step.")
+          }
 
         } else if (this.speech.includes("capture picture")) {
           axios.get('http://localhost:8080/api/get_picture')
