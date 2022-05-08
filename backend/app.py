@@ -156,30 +156,47 @@ def direction(orientation):
 
   margin = 10 # margin of error - user does not have to get pixel exactly right
   if orientation == "horizontal":
-    if (hP[0] > colorLocation[0]):
+    if abs(hP[0] - colorLocation[0]) < margin:
+      return "S"
+    elif (hP[0] > colorLocation[0]):
       return "R" 
     elif (hP[0] < colorLocation[0]):
       return "L"
 
   if orientation == "vertical":
-    if (hP[1] < colorLocation[1]):
+    if abs(hP[1] - colorLocation[1]) < margin:
+      return "P"
+    elif (hP[1] < colorLocation[1]):
       return "U" 
     elif (hP[1] > colorLocation[1]):
       return "D"
 
-  # if we get here, we know our direction of choice is aligned;
-  # check if the other direction is aligned also
-  if orientation == "vertical":
-    if abs(hP[0] - colorLocation[0]) < margin:
-      return "P"
-    return "S"
-  
-  if orientation == "horizontal":
-    if abs(hP[1] - colorLocation[1]) < margin:
-      return "P"
-    return "S"
-
   return "error"
+  # if orientation == "horizontal":
+  #   if (hP[0] > colorLocation[0] + margin) :
+  #     return "R" 
+  #   elif (hP[0] < colorLocation[0] - margin):
+  #     return "L"
+
+  # if orientation == "vertical":
+  #   if (hP[1] < colorLocation[1] - margin):
+  #     return "U" 
+  #   elif (hP[1] > colorLocation[1] + margin):
+  #     return "D"
+
+  # # if we get here, we know our direction of choice is aligned;
+  # # check if the other direction is aligned also
+  # if orientation == "vertical":
+  #   if abs(hP[0] - colorLocation[0]) < margin:
+  #     return "P"
+  #   return "S"
+  
+  # if orientation == "horizontal":
+  #   if abs(hP[1] - colorLocation[1]) < margin:
+  #     return "P"
+  #   return "S"
+
+  # return "error"
 
 @app.route("/video_feed")
 def video_feed():
@@ -210,11 +227,12 @@ def get_picture():
   # return a single video frame (as jpg), cropped to just the picture
   global outputFrame2, lastSavedPicture
   if outputFrame2 is not None:
-    # crop the image to just show the picture (which we find via contours)
+    # crop the image to just show the picture (which we find via Q)
     gray = cv2.cvtColor(outputFrame2, cv2.COLOR_BGR2GRAY)
 
     ret,thresh_img = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
     thresh_img = cv2.dilate(thresh_img, np.ones((45, 45), np.uint8)) 
+    
     thresh_img = cv2.medianBlur(thresh_img, 25)
 
     contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)

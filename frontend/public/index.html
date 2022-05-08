@@ -24,7 +24,7 @@
         2. Hanging point
       </button>  <div class="arrow-right"></div>
     
-      <button type="button" class="btn" v-bind:class="{'btn-success': step == 3, 'btn-outline-primary': step != 3}" v-on:click="changeStepMaybe(3)">
+      <button type="button" class="btn" v-bind:class="{'btn-success': step == 3, 'btn-outline-primary': step != 3}" v-on:click="changeStepMaybe(3); placeHangingPoint(false)">
         3. Hanging location
       </button> <div class="arrow-right"></div>
       
@@ -143,7 +143,7 @@
     </div>
   </div>
 
-  <button type="button" class="btn btn-secondary" v-on:click="placeHangingPoint()" v-if="step == 2">
+  <button type="button" class="btn btn-secondary" v-on:click="placeHangingPoint(true)" v-if="step == 2">
     Save hanging point
   </button>
 
@@ -201,7 +201,7 @@
         alert("Your picture location has been saved. You can move to the next step.")  
       },
 
-      placeHangingPoint() {
+      placeHangingPoint(raise_a) {
         var imgy = window.scrollY + 
             (document.querySelector("#placement-dot").getBoundingClientRect().top
             +document.querySelector("#placement-dot").getBoundingClientRect().bottom)/2 // Y
@@ -226,10 +226,12 @@
         var dy = imgy - wally;
         var xp = dx / wall_width;
         var yp = dy / wall_height;
-
+        console.log( imgx - wallx, imgy - wally)
         axios.post('http://localhost:8080/api/hanging_point', 
                   {'x': imgx - wallx, 'y': imgy - wally})
-        alert("Your hanging point has been saved. You can move to the next step.")
+        if (raise_a){
+          alert("Your hanging point has been saved. You can move to the next step.")
+        }
       },
       sendColorCode(){
         color_code = document.getElementById("colorpicker").value;
@@ -273,6 +275,7 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
+              console.log(this.orientationDone)
               if (result == "error") {
                 console.log("the backend returned the word 'error'")
               }
@@ -282,8 +285,7 @@
                 this.speak("You're correctly aligned! You can now hang your picture.")
               } else if (result == "S") {
                 this.orientationDone = true;
-                this.speak("You're correctly aligned in the " + this.orientation +
-                    " direction only. Switch to the other direction to finish.")
+                this.speak("You're correctly aligned in this direction only. Switch to the other direction to finish.")
               } else if (result in this.directions) {
                 this.direction = this.directions[result]
                 this.speak(this.direction)
