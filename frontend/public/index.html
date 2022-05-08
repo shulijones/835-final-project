@@ -24,7 +24,7 @@
         3. Hanging location
       </button> <div class="arrow-right"></div>
       
-      <button type="button" class="btn" v-bind:class="{'btn-success': step == 4, 'btn-outline-primary': step != 4}" v-on:click="changeStepMaybe(4)">
+      <button type="button" class="btn" v-bind:class="{'btn-success': step == 4, 'btn-outline-primary': step != 4}" v-on:click="changeStepMaybe(4); savePictureLocationOnWall(false)">
         4. Place picture
       </button> <div class="arrow-right"></div>
       
@@ -51,8 +51,8 @@
 
     <p v-if="step == 2 || step == 0">
       <b>Step 2: Hanging point.</b>
-      On the image of your picture below, drag the circle to where the nail will go and 
-      click save. Based on that information, and what you'll tell us in Step 4 about where
+      On the image of your picture below, drag the circle to where the nail will go. 
+      Based on that information, and what you'll tell us in Step 4 about where
       the picture goes on the wall, we'll calculate the nail's location.
     </p>
 
@@ -66,7 +66,7 @@
     <p v-if="step == 4 || step == 0">
       <b>Step 4: Place picture. </b> Match up your picture to its 
       location by dragging and resizing it: to drag, click on the text above the image, and to resize, drag
-      the small triangle at the bottom right of the image. Then click "save". You can adjust its location
+      the small triangle at the bottom right of the image. You can adjust its location
       from the original if you prefer;
       the computer will place the nail based on the location where you drag the picture,
       not where it is in the original photo.
@@ -81,20 +81,18 @@
     </p>
 
     <div v-if="step == 5" >
-      Select the color of your marking object. It doesn't have to be exact, just the right general color.
-      <br>
-      <input type="color" id="colorpicker" value="#0000ff">
-      <br>
-      <button type="button" class="btn btn-secondary" v-on:click="sendColorCode()">
-        Save color selection
-      </button>
+      Select the color of your marking object:
+      <select id="color-select" @change="sendColorCode()">
+        <option value="#ff0808">red</option>
+        <option value="#ffa408">orange</option>
+        <option value="#edff08">yellow</option>
+        <option value="#2bff33">green</option>
+        <option value="#0000ff" selected>blue</option>
+        <option value="#8408ff">purple</option>
+     </select>
     </div>
     
   </div>
-
-  <button type="button" class="btn btn-secondary" v-if="step == 4" v-on:click="savePictureLocationOnWall()">
-    Save picture location
-  </button>
 
   <div v-if="capture_picture && step == 1">
     <br>
@@ -140,10 +138,6 @@
     </div>
   </div>
 
-  <button type="button" class="btn btn-secondary" v-on:click="placeHangingPoint(true)" v-if="step == 2">
-    Save hanging point
-  </button>
-
   <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
   <div id = "poster-img"  v-if="step == 2">
@@ -174,7 +168,7 @@
       }
     },
     methods: {
-      savePictureLocationOnWall() {
+      savePictureLocationOnWall(raise_a) {
         var imgy = window.scrollY + 
             document.querySelector("#actual-poster").getBoundingClientRect().top // Y
         var imgx = window.scrollX + 
@@ -187,7 +181,9 @@
 
         axios.post('http://localhost:8080/api/frame_corner', 
                   {'x': imgx - wallx, 'y': imgy - wally})
-        alert("Your picture location has been saved. You can move to the next step.")  
+        if (raise_a) {
+          alert("Your picture location has been saved. You can move to the next step.");
+        }
       },
 
       placeHangingPoint(raise_a) {
@@ -223,7 +219,8 @@
         }
       },
       sendColorCode(){
-        color_code = document.getElementById("colorpicker").value;
+        var select = document.getElementById('color-select');
+        var color_code = select.options[select.selectedIndex].value; 
         axios.post('http://localhost:8080/api/select_tracking_color', 
                   {'color': color_code})
         alert("Your color selection has been updated!")  
