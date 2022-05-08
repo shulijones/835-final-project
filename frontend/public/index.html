@@ -115,17 +115,14 @@
     You need to move: {{ direction }}
   </div>
 
-
   <div v-if="hang_location && step == 3">
     <br> Your hanging location: <br>
     <img :src=hang_location>
   </div>
 
-  
 <div id="wall-img"  v-bind:class="{'visible': step == 4} ">
   <img :src=hang_location>
 </div>
-
 
   <div id="posterdiv"  v-bind:class="{'visible': step == 4}">
     <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
@@ -147,7 +144,6 @@
 </div>
 
 </div>
-
 
 <script>
   Vue.createApp({
@@ -199,9 +195,6 @@
         var wallx = window.scrollX + 
             document.querySelector("#poster-img").getBoundingClientRect().left;
 
-        // TODO: hanging point is currently absolute which doesn't work
-        // since image is resized from original, need to make it percentage-based
-        // and then figure out how to integrate that on backend
         var wall_height = document.querySelector("#poster-img").getBoundingClientRect().bottom
             - document.querySelector("#poster-img").getBoundingClientRect().top;
         var wall_width = document.querySelector("#poster-img").getBoundingClientRect().right
@@ -223,7 +216,6 @@
         var color_code = select.options[select.selectedIndex].value; 
         axios.post('http://localhost:8080/api/select_tracking_color', 
                   {'color': color_code})
-        alert("Your color selection has been updated!")  
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -252,7 +244,6 @@
       },
       speak(utterance) { 
         let utt = new SpeechSynthesisUtterance(utterance);
-        // utt.voice = window.speechSynthesis.getVoices()[3];
         speechSynthesis.speak(utt);
       },
       getDirection() {
@@ -261,7 +252,6 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
-              console.log(this.orientationDone)
               if (result == "error") {
                 console.log("the backend returned the word 'error'")
               }
@@ -384,12 +374,12 @@
   }
 
   .arrow-right {
-      width: 0; 
-      height: 0; 
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      border-left: 10px solid #0033cc;
-      margin: 2px;
+    width: 0; 
+    height: 0; 
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #0033cc;
+    margin: 2px;
   }
 
   #instructions {
@@ -414,11 +404,8 @@
   }
 
   #poster{
-      /* background-image: url("poster.jpg");
-      background-size: contain; */
-      width: 100px;
-      height: 100px;
-      
+    width: 100px;
+    height: 100px;
     resize: both;
     overflow: hidden;
   }
@@ -443,19 +430,19 @@
   }
 
   #placement-dot {
-      position: absolute;
-      z-index: 9;
-      height: 25px;
-      width: 25px;
-      background-color: transparent;
-      border-radius: 50%;
-      display: inline-block;
+    position: absolute;
+    z-index: 9;
+    height: 25px;
+    width: 25px;
+    background-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
 
   }
 
   #image-display {
-      display: flex;
-      flex-direction: column;
+    display: flex;
+    flex-direction: column;
   }
 
   #image-display > div {
@@ -463,50 +450,49 @@
   }
 </style>
 
-
 <script>
   dragElement(document.getElementById("posterdiv"));
 
   dragElement(document.getElementById("placement-dot"));
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  if (document.getElementById(elmnt.id + "header")) {
-    // if present, the header is where you move the DIV from:
-    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-  } else {
-    // otherwise, move the DIV from anywhere inside the DIV:
-    elmnt.onmousedown = dragMouseDown;
-  }
+  function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+      // if present, the header is where you move the DIV from:
+      document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV:
+      elmnt.onmousedown = dragMouseDown;
+    }
 
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
 
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-  }
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
 
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
 }
 
 </script>

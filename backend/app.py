@@ -1,4 +1,4 @@
-# code skeleton heavily based on tutorial: 
+# code skeleton based on tutorial: 
 # https://pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/
 
 # import the necessary packages
@@ -44,11 +44,8 @@ def get_video(frameCount):
   while True:
     # read the next frame from the video stream and resize it
     frame = vs.read()
-    #outputFrame2 = cv2.flip(frame, flipCode=1)
     bigOutputFrame = frame.copy()
     frame = imutils.resize(frame, width=500)
-    #flipped_frame = cv2.flip(frame, flipCode=1)
-    #outputFrame = flipped_frame.copy()
     smallOutputFrame = frame.copy()
 
 def generate():
@@ -70,11 +67,9 @@ def generate():
 def color_track_frame():
     global colorOutputFrame, colorLocation, bigOutputFrame
     img = cv2.GaussianBlur(bigOutputFrame,(11,11),0)
-   # img = cv2.flip(img, flipCode=1)
     overlay = bigOutputFrame
     thresholded_img = img
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # thresholded_img = cv2.inRange(hsv_img, (40,55,55), (80,255,255))
     thresholded_img = cv2.inRange(hsv_img, tuple(tracking_color_min), tuple(tracking_color_max))
     thresholded_img = cv2.erode(thresholded_img, None, iterations=2)
     thresholded_img = cv2.dilate(thresholded_img, None, iterations=2)
@@ -93,7 +88,7 @@ def color_track_frame():
         y = int(moments['m01']/area)
         colorLocation = (x, y)
         overlay = cv2.circle(bigOutputFrame, (x, y), 20, (255, 0, 0), 10)
-    colorOutputFrame = overlay # imutils.resize(overlay, width=500)
+    colorOutputFrame = overlay
 
 def generate_color_tracking():
   global colorOutputFrame
@@ -220,32 +215,8 @@ def get_picture():
 
     contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     contours = sorted(contours, key=cv2.contourArea)
-
-    # OPTION ONE
-    # maxContour = (None, None)
-    # for contour in contours[-4:-1]: 
-    #   # get the second + third + fourth best (biggest is whole image)
-    #   x,y,w,h = cv2.boundingRect(contour)
-    #   area = w * h
-    #   if maxContour[0] is None or area > maxContour[0]:
-    #     # take the biggest contour of these three
-    #     maxContour = (area, contour)
-    # x,y,w,h = cv2.boundingRect(maxContour[1])
-
-    # OPTION TWO
-    # bigContours = []
-    # imgx, imgy = thresh_img.shape
-    # threshold = 0.4 * imgx * imgy
-    # for contour in contours:
-    #   x,y,w,h = cv2.boundingRect(contour)
-    #   if w * h > threshold:
-    #     bigContours.append(contour)
-    # x,y,w,h = cv2.boundingRect(bigContours[-2])
-
-    # REGULAR
     x,y,w,h = cv2.boundingRect(contours[-2])
-    cropped_image = bigOutputFrame[y-60:y+h+60,x-60:x+w+60]
-    # cropped_image = outputFrame2[y:y+h,x:x+w]
+    cropped_image = bigOutputFrame[y-30:y+h+30,x-30:x+w+30]
     lastSavedPicture = cropped_image
 
     # encode the image as a jpg and check the encoding was successful

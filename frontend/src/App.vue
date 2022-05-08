@@ -1,6 +1,5 @@
 <template>
   <div>
-    <p>Hi my name is Shuli</p>
   </div>
 </template>
 
@@ -11,7 +10,6 @@ module.exports = {
   name: "app",
   data() {
     return {
-      user: "shuli",
     };
   },
   methods: {
