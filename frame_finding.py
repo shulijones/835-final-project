@@ -1,3 +1,5 @@
+# test file for rectangle identification code
+
 from cmath import inf
 import cv2
 import numpy as np

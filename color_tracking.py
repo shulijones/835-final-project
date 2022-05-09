@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+# test file for color tracking code
+
 import cv2
 
 vid = cv2.VideoCapture(0)

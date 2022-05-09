@@ -1,10 +1,6 @@
 <script src="https://unpkg.com/vue@3"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="confetti.js"></script>
-<!-- Bootstrap (CSS package) -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous"> -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous"> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script> -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
 <div id="app">
@@ -28,11 +24,11 @@
         3. Hanging location
       </button> <div class="arrow-right"></div>
       
-      <button type="button" class="btn" v-bind:class="{'btn-success': step == 4, 'btn-outline-primary': step != 4}" v-on:click="changeStepMaybe(4)">
+      <button type="button" class="btn" v-bind:class="{'btn-success': step == 4, 'btn-outline-primary': step != 4}" v-on:click="changeStepMaybe(4); ">
         4. Place picture
       </button> <div class="arrow-right"></div>
       
-      <button type="button" class="btn" v-bind:class="{'btn-success': step == 5, 'btn-outline-primary': step != 5}" v-on:click="changeStepMaybe(5)">
+      <button type="button" class="btn" v-bind:class="{'btn-success': step == 5, 'btn-outline-primary': step != 5}" v-on:click="changeStepMaybe(5); savePictureLocationOnWall(false)">
         5. Place nail
       </button>
     </div>
@@ -41,63 +37,62 @@
   <div id="app-body">
   <div id="instructions">
     <p v-if="step == 0">
-      This is the instructions for all five steps; each step also shows its own instructions. 
-      You can move between steps by clicking on their names or by saying "next step" out loud.
+      Here's a preview of the instructions for all five steps; each step also shows its own instructions. 
+      You can move between steps by clicking on their names or by saying "next step" out loud. As you work through
+      the steps, read each one's instructions carefully.
     </p>
 
     <p v-if="step == 1 || step == 0">
       <b>Step 1: Capture picture.</b>
-      Hold the picture so that it fills as much of the screen as possible and say 
-      "capture picture". Hold the picture still for three seconds.
+      Hold the picture so that it fills as much of the screen as possible, but is still in the correct orientation. Then say 
+      <b>"capture picture"</b>. Hold the picture still for three seconds.
       You can repeat this step until you get a picture you're happy with.
     </p>
 
     <p v-if="step == 2 || step == 0">
       <b>Step 2: Hanging point.</b>
-      On the image of your picture below, drag the circle to where the nail will go and 
-      click save. Based on that information, and what you'll tell us in Step 4 about where
+      On the image of your picture below, drag the circle to where the nail will go. 
+      Based on that information, and what you'll tell us in Step 4 about where
       the picture goes on the wall, we'll calculate the nail's location.
     </p>
 
     <p v-if="step == 3 || step == 0">
       <b>Step 3: Hanging location.</b> 
-      Hold your picture up to the wall where you want it to go. Then say "save location".
+      Hold your picture up to the wall where you want it to go. Then say <b>"save location"</b>.
       Once you have saved the location, don't move your computer for the rest 
       of the process.
     </p>
 
     <p v-if="step == 4 || step == 0">
       <b>Step 4: Place picture. </b> Match up your picture to its 
-      location by dragging and resizing it, then click "save". You can adjust its location
+      location by dragging and resizing it: to drag, click on the text above the image, and to resize, drag
+      the small triangle at the bottom right of the image. You can adjust its location
       from the original if you prefer;
       the computer will place the nail based on the location where you drag the picture,
       not where it is in the original photo.
     </p>
 
-
     <p v-if="step == 5 || step == 0">
       <b>Step 5: Place nail.</b> 
       Stand by the wall with your colored marking object (ex: a bottle cap). We recommend green, blue, or purple for best results.
-      You can say 'horizontal' or 'vertical' and the computer will tell you whether to move left/right or up/down. 
+      You can say <b>'horizontal'</b> or <b>'vertical'</b> and the computer will tell you whether to move left/right or up/down. 
       It will also let you know when you're correctly oriented in each direction. Once both
       directions are done, your picture is ready to hang up!
     </p>
 
     <div v-if="step == 5" >
       Select the color of your marking object:
-      <br>
-      <input type="color" id="colorpicker" value="#0000ff">
-      <br>
-      <button type="button" class="btn btn-secondary" v-on:click="sendColorCode()">
-        Save color selection
-      </button>
+      <select id="color-select" @change="sendColorCode()">
+        <option value="#ff0808">red</option>
+        <option value="#ffa408">orange</option>
+        <option value="#edff08">yellow</option>
+        <option value="#2bff33">green</option>
+        <option value="#0000ff" selected>blue</option>
+        <option value="#8408ff">purple</option>
+     </select>
     </div>
     
   </div>
-
-  <button type="button" class="btn btn-secondary" v-if="step == 4" v-on:click="savePictureLocationOnWall()">
-    Save picture location
-  </button>
 
   <div v-if="capture_picture && step == 1">
     <br>
@@ -120,17 +115,14 @@
     You need to move: {{ direction }}
   </div>
 
-
   <div v-if="hang_location && step == 3">
     <br> Your hanging location: <br>
     <img :src=hang_location>
   </div>
 
-  
 <div id="wall-img"  v-bind:class="{'visible': step == 4} ">
   <img :src=hang_location>
 </div>
-
 
   <div id="posterdiv"  v-bind:class="{'visible': step == 4}">
     <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
@@ -143,10 +135,6 @@
     </div>
   </div>
 
-  <button type="button" class="btn btn-secondary" v-on:click="placeHangingPoint(true)" v-if="step == 2">
-    Save hanging point
-  </button>
-
   <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
   <div id = "poster-img"  v-if="step == 2">
@@ -156,7 +144,6 @@
 </div>
 
 </div>
-
 
 <script>
   Vue.createApp({
@@ -177,7 +164,7 @@
       }
     },
     methods: {
-      savePictureLocationOnWall() {
+      savePictureLocationOnWall(raise_a) {
         var imgy = window.scrollY + 
             document.querySelector("#actual-poster").getBoundingClientRect().top // Y
         var imgx = window.scrollX + 
@@ -196,8 +183,9 @@
         // sends the top left corner
         axios.post('http://localhost:8080/api/frame_corner', 
                   {'x': imgx - wallx, 'y': imgy - wally, "height": img_height, "width": img_width})
-        
-        alert("Your picture location has been saved. You can move to the next step.")  
+        if (raise_a) {
+          alert("Your picture location has been saved. You can move to the next step.")  
+        }
       },
 
       
@@ -217,9 +205,6 @@
         var wallx = window.scrollX + 
             document.querySelector("#poster-img").getBoundingClientRect().left;
 
-        // TODO: hanging point is currently absolute which doesn't work
-        // since image is resized from original, need to make it percentage-based
-        // and then figure out how to integrate that on backend
         var wall_height = document.querySelector("#poster-img").getBoundingClientRect().bottom
             - document.querySelector("#poster-img").getBoundingClientRect().top;
         var wall_width = document.querySelector("#poster-img").getBoundingClientRect().right
@@ -238,10 +223,10 @@
         }
       },
       sendColorCode(){
-        color_code = document.getElementById("colorpicker").value;
+        var select = document.getElementById('color-select');
+        var color_code = select.options[select.selectedIndex].value; 
         axios.post('http://localhost:8080/api/select_tracking_color', 
                   {'color': color_code})
-        alert("Your color selection has been updated!")  
       },
       changeStepMaybe(newStep) {
         // allows you to go back any number of steps and advance one step
@@ -270,7 +255,6 @@
       },
       speak(utterance) { 
         let utt = new SpeechSynthesisUtterance(utterance);
-        // utt.voice = window.speechSynthesis.getVoices()[3];
         speechSynthesis.speak(utt);
       },
       getDirection() {
@@ -279,7 +263,6 @@
           axios.get('http://localhost:8080/api/direction/' + this.orientation)
             .then((response) => {
               const result = response.data
-              console.log(this.orientationDone)
               if (result == "error") {
                 console.log("the backend returned the word 'error'")
               }
@@ -402,12 +385,12 @@
   }
 
   .arrow-right {
-      width: 0; 
-      height: 0; 
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      border-left: 10px solid #0033cc;
-      margin: 2px;
+    width: 0; 
+    height: 0; 
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #0033cc;
+    margin: 2px;
   }
 
   #instructions {
@@ -432,11 +415,8 @@
   }
 
   #poster{
-      /* background-image: url("poster.jpg");
-      background-size: contain; */
-      width: 100px;
-      height: 100px;
-      
+    width: 100px;
+    height: 100px;
     resize: both;
     overflow: hidden;
   }
@@ -448,7 +428,7 @@
   }
 
   #poster-img{
-    width: 500px;
+    /* width: 500px; */
     height: auto;
     opacity: 50%;
   }
@@ -461,19 +441,19 @@
   }
 
   #placement-dot {
-      position: absolute;
-      z-index: 9;
-      height: 25px;
-      width: 25px;
-      background-color: transparent;
-      border-radius: 50%;
-      display: inline-block;
+    position: absolute;
+    z-index: 9;
+    height: 25px;
+    width: 25px;
+    background-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
 
   }
 
   #image-display {
-      display: flex;
-      flex-direction: column;
+    display: flex;
+    flex-direction: column;
   }
 
   #image-display > div {
@@ -481,50 +461,49 @@
   }
 </style>
 
-
 <script>
   dragElement(document.getElementById("posterdiv"));
 
   dragElement(document.getElementById("placement-dot"));
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  if (document.getElementById(elmnt.id + "header")) {
-    // if present, the header is where you move the DIV from:
-    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-  } else {
-    // otherwise, move the DIV from anywhere inside the DIV:
-    elmnt.onmousedown = dragMouseDown;
-  }
+  function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+      // if present, the header is where you move the DIV from:
+      document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV:
+      elmnt.onmousedown = dragMouseDown;
+    }
 
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
 
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-  }
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
 
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
 }
 
 </script>
