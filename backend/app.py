@@ -24,6 +24,8 @@ lastSavedPicture = None
 colorLocation = None
 cornerLocation = None
 hangingPoint = None
+hangingPointFractional = None
+frameDimensions = None
 tracking_color_min = [100.0, 55, 55]
 tracking_color_max = [140.0, 255, 255]
 
@@ -115,8 +117,10 @@ def generate_color_tracking():
 @app.route('/frame_corner', methods=['POST'])
 def frame_corner():
   global cornerLocation
+  global frameDimensions
   loc = request.get_json()
   cornerLocation = (loc['x'], loc['y'])
+  frameDimensions = (loc["width"], loc["height"])
   return "success"
 
 @app.route('/select_tracking_color', methods=['POST'])
@@ -135,8 +139,10 @@ def select_tracking_color():
 @app.route('/hanging_point', methods=['POST'])
 def hanging_point():
   global hangingPoint
+  global hangingPointFractional
   loc = request.get_json()
   hangingPoint = (loc['x'], loc['y'])
+  hangingPointFractional = (loc["fraction_x"], loc["fraction_y"])
   return "success"
 
 @app.route("/direction/<orientation>")
@@ -152,7 +158,10 @@ def direction(orientation):
 
   # hangingPoint is a relative location, cornerLoc is an absolute one
   # find absolute location of hangingPoint
-  hP = (cornerLocation[0] + hangingPoint[0], cornerLocation[1] + hangingPoint[1])
+
+  # the second line here is the correct one
+  # hP = (cornerLocation[0] + hangingPoint[0], cornerLocation[1] + hangingPoint[1])
+  hP = (cornerLocation[0] + (hangingPointFractional[0] * frameDimensions[0]), cornerLocation[1] + (hangingPointFractional[1] * frameDimensions[1]))
 
   margin = 10 # margin of error - user does not have to get pixel exactly right
   if orientation == "horizontal":

@@ -150,7 +150,7 @@
   <div id="placement-dot"  v-bind:class="{'active': step == 2}" ></div>
 
   <div id = "poster-img"  v-if="step == 2">
-    <img :src=capture_picture style="width: 400px; max-width:100%;
+    <img :src=capture_picture style="width: 500px; max-width:100%;
       max-height:100%;">
   </div>
 </div>
@@ -188,15 +188,26 @@
         var wallx = window.scrollX + 
             document.querySelector("#wall-img").getBoundingClientRect().left;
 
+        // also calcualte the height and the width of the poster
+        
+        img_width = document.querySelector('#actual-poster').getBoundingClientRect().right - document.querySelector('#actual-poster').getBoundingClientRect().left 
+        img_height = document.querySelector('#actual-poster').getBoundingClientRect().bottom - document.querySelector('#actual-poster').getBoundingClientRect().top
+        console.log("dimensions",img_width, img_height)
+        // sends the top left corner
         axios.post('http://localhost:8080/api/frame_corner', 
-                  {'x': imgx - wallx, 'y': imgy - wally})
+                  {'x': imgx - wallx, 'y': imgy - wally, "height": img_height, "width": img_width})
+        
         alert("Your picture location has been saved. You can move to the next step.")  
       },
 
+      
+
       placeHangingPoint(raise_a) {
+
+        // 
         var imgy = window.scrollY + 
             (document.querySelector("#placement-dot").getBoundingClientRect().top
-            +document.querySelector("#placement-dot").getBoundingClientRect().bottom)/2 // Y
+            + document.querySelector("#placement-dot").getBoundingClientRect().bottom)/2 // Y
         var imgx = window.scrollX + 
             (document.querySelector('#placement-dot').getBoundingClientRect().left
             +document.querySelector("#placement-dot").getBoundingClientRect().right)/2 // X
@@ -218,9 +229,10 @@
         var dy = imgy - wally;
         var xp = dx / wall_width;
         var yp = dy / wall_height;
-        console.log( imgx - wallx, imgy - wally)
+        console.log( "fractionals", (imgx - wallx )/ wall_width, (imgy - wally) / wall_height)
+  
         axios.post('http://localhost:8080/api/hanging_point', 
-                  {'x': imgx - wallx, 'y': imgy - wally})
+                  {'x': imgx - wallx, 'y': imgy - wally, "fraction_x": (imgx - wallx) / wall_width, "fraction_y": (imgy - wally) / wall_height})
         if (raise_a){
           alert("Your hanging point has been saved. You can move to the next step.")
         }
@@ -299,7 +311,7 @@
     },
     mounted() {
       // Start the function which will continously do nail positioning when in step 4
-      // every 5 seconds right now
+      // every 2 seconds right now
       setInterval(this.getDirection, 2000)
 
       // Set up Speech Recognition
